@@ -39,19 +39,19 @@ std::ostream& operator<<(std::ostream& out, const HP& c)
 	return out;
 }
 
-class Attack
+class Attack2
 {
 public:
-	Attack(unsigned long long attack) : _attack(attack) {}
+	Attack2(unsigned long long attack) : _attack(attack) {}
 	size_t _attack;
 };
 
-Attack operator"" _attack(unsigned long long n)
+Attack2 operator"" _attack(unsigned long long n)
 {
-	return Attack(n);
+	return Attack2(n);
 }
 
-std::ostream& operator<<(std::ostream& out, const Attack& c)
+std::ostream& operator<<(std::ostream& out, const Attack2& c)
 {
 	out << c._attack;
 	return out;
@@ -60,19 +60,23 @@ std::ostream& operator<<(std::ostream& out, const Attack& c)
 template<>
 struct TypeTraits<WeakType> {
 	static HP hp() { return 50_hp; };
-	static Attack attack() { return 10_attack; };
+	static Attack2 attack() { return 10_attack; };
+	static const int hp_c = 50;
+	static const int attack_c = 5;
 };
 
 template<>
 struct TypeTraits<StrongType> {
 	static HP hp() { return 100_hp; };
-	static Attack attack() { return 5_attack; };
+	static Attack2 attack() { return 5_attack; };
+	static const int hp_c = 100;
+	static const int attack_c = 13;
 };
 
 
 class Pokemon {
 public:
-	Pokemon(size_t index, std::string navn, HP hp, Attack attack) : _pokeIndex(index),
+	Pokemon(size_t index, std::string navn, HP hp, Attack2 attack) : _pokeIndex(index),
 		_navn(navn),
 		_hp(hp),
 		_attack(attack) {
@@ -80,7 +84,7 @@ public:
 	}
 
 	HP _hp;
-	Attack _attack;
+	Attack2 _attack;
 	size_t _pokeIndex;
 	std::string _navn;
 
@@ -145,6 +149,8 @@ class TypePokemon : public Pokemon {
 public:
 	TypePokemon(size_t index, std::string navn) : Pokemon(index, navn, TypeTraits<TType>::hp(), TypeTraits<TType>::attack())
 	{};
+
+	typedef TypeTraits<TType> type_traits;
 };
 
 using WeakPokemon = TypePokemon<WeakType>;
@@ -225,14 +231,47 @@ public:
 	}
 };
 
+
 class FightFirstWins
 {
 public:
+
 	Pokemon* operator()(Pokemon* p1, Pokemon* p2) const
 	{
 		return p1;
 	}
 };
+
+
+
+
+template<int health, int dmg>
+struct Attack {
+	inline static const int hp = (health - dmg) < 0 ? 0 : (health - dmg);
+};
+
+template<const int p1_dmg, const int p1_hp, const int p2_dmg, const int p2_hp>
+void Fight(const std::string& p1_name, const std::string& p2_name) {
+	std::cout << p1_name << " has " << p1_hp << " hp" << std::endl;
+
+	if (p1_hp == 0) {
+		std::cout << p1_name << " died for your entertainment" << std::endl;
+	}
+	else {
+		// give dmg
+		std::cout << p1_name << " survived and attacks " << p2_name << " for " << p1_dmg << " hp" << std::endl;
+		// next round
+		Fight<p2_dmg, Attack<p2_hp, p1_dmg>::hp, p1_dmg, p1_hp>(p2_name, p1_name);
+	}
+};
+
+template<typename P1, typename P2>
+void Fight(const P1& p1, const P2& p2) {
+	std::cout << "BATTLE MUSIC" << std::endl;
+
+	Fight<P1::type_traits::attack_c, P1::type_traits::hp_c, P2::type_traits::attack_c, P2::type_traits::hp_c>(p1._navn, p2._navn);
+};
+
 
 
 
@@ -283,6 +322,13 @@ public:
 	{
 		pokemonFightCalculator.fight(_pokemons.front(), _pokemons.back());
 	}
+
+	void predestinedBattle() {
+		WeakPokemon Raticate(20, "Raticate");
+		StrongPokemon Dragonite(149, "Dragonite");
+
+		Fight(Raticate, Dragonite);
+	}
 };
 
 
@@ -308,6 +354,7 @@ int main()
 		std::cout << "Press 2 for viewing all pokemons with iterator" << std::endl;
 		std::cout << "Press 3 for viewing all pokemon names, sorted by name" << std::endl;
 		std::cout << "Press 4 for starting random fights every few seconds." << std::endl;
+		std::cout << "Press 5 for one predestined fight." << std::endl;
 		std::cout << "Press q for exiting" << std::endl;
 
 		std::cout << "Dit valg: ";
@@ -323,9 +370,11 @@ int main()
 			case '3':
 				pokedex.printSortedByName();
 				break;
-
 			case '4':
 				pokedex.randomPokemonFights(pokemonFightCalculator);
+				break;
+			case '5':
+				pokedex.predestinedBattle();
 				break;
 			case 'q':
 				continueProgram = false;
