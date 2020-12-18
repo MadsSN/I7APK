@@ -24,6 +24,7 @@ struct TypeTraits<WeakType> {
 	static size_t attack() { return 10; };
 	static const int hp_c = 50;
 	static const int attack_c = 5;
+	typedef WeakType type;
 };
 
 template<>
@@ -32,6 +33,7 @@ struct TypeTraits<StrongType> {
 	static size_t attack() { return 5; };
 	static const int hp_c = 100;
 	static const int attack_c = 13;
+	typedef StrongType type;
 };
 
 
@@ -62,11 +64,13 @@ std::ostream& operator<<(std::ostream& out, const Pokemon& c)
 
 template<typename TType>
 class TypePokemon : public Pokemon {
+	BOOST_STATIC_ASSERT(boost::is_same<TType, WeakType>::value || boost::is_same<TType, StrongType>::value);
 public:
 	TypePokemon(size_t index, std::string navn) : Pokemon(index, navn, TypeTraits<TType>::hp(), TypeTraits<TType>::attack())
 	{};
 
 	typedef TypeTraits<TType> type_traits;
+	typedef typename TypeTraits<TType>::type type;
 };
 
 using WeakPokemon = TypePokemon<WeakType>;
