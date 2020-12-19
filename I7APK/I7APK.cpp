@@ -254,7 +254,7 @@ template<const int p1_dmg, const int p1_hp, const int p2_dmg, const int p2_hp>
 void Fight(const std::string& p1_name, const std::string& p2_name) {
 	std::cout << p1_name << " has " << p1_hp << " hp" << std::endl;
 
-	if (p1_hp == 0) {
+	if constexpr (p1_hp == 0) {
 		std::cout << p1_name << " died for your entertainment" << std::endl;
 	}
 	else {
@@ -272,7 +272,75 @@ void Fight(const P1& p1, const P2& p2) {
 	Fight<P1::type_traits::attack_c, P1::type_traits::hp_c, P2::type_traits::attack_c, P2::type_traits::hp_c>(p1._navn, p2._navn);
 };
 
+template<typename P1, typename P2>
+struct is_first_winner
+{
+	inline static constexpr bool value = P1::type_traits::hp_c / P2::type_traits::attack_c > P2::type_traits::hp_c / P1::type_traits::attack_c;
+};
 
+struct FirstWinTag {};
+struct SecondWinTag {};
+
+/*Taken from slides*/
+template < typename Ttrue, typename Tfalse, bool>
+struct IfThenElse;
+
+template <typename Ttrue, typename Tfalse>
+struct IfThenElse < Ttrue, Tfalse, false>
+{
+	 typedef Tfalse Type;
+};
+
+template <typename Ttrue, typename Tfalse>
+struct IfThenElse < Ttrue, Tfalse, true>
+{
+	typedef Ttrue Type;
+};
+
+template<typename P1, typename P2>
+Pokemon* Fight3(P1* p1, P2* p2)
+{
+	return Fight3Impl(p1, p2,
+		typename IfThenElse<FirstWinTag, SecondWinTag, is_first_winner<P1,P2>::value>::Type());
+}
+
+template<typename P1, typename P2>
+P1* Fight3Impl(P1* p1, P2* p2, FirstWinTag)
+{
+	std::cout << "BATTLE MUSIC - First winner chicken dinner" << std::endl;
+	std::cout << p1->_navn << " won!" << std::endl;
+	std::cout << "and " << p2->_navn << " died for your entertainment" << std::endl;
+	return p1;
+}
+
+template<typename P1, typename P2>
+P2* Fight3Impl(P1* p1, P2* p2, SecondWinTag)
+{
+	std::cout << "BATTLE MUSIC - Second winner chicken dinner" << std::endl;
+	std::cout << p2->_navn << " won!" << std::endl;
+	std::cout << "and " << p1->_navn << " died for your entertainment" << std::endl;
+	return p2;
+}
+
+
+
+
+
+
+template<typename P1, typename P2>
+const Pokemon* Fight2(const P1* p1, const P2* p2) {
+	std::cout << "BATTLE MUSIC" << std::endl;
+	if constexpr (is_first_winner<P1,P2>::value) {
+		std::cout << p1->_navn << " won!" << std::endl;
+		std::cout << "and " << p2->_navn << " died for your entertainment" << std::endl;
+		return p1;
+	}
+	else {
+		std::cout << p1->_navn << " died for your entertainment" << std::endl;
+		std::cout << "and " << p2->_navn << " won!" << std::endl;
+		return p2;
+	}
+};
 
 
 class Pokedex {
@@ -327,7 +395,8 @@ public:
 		WeakPokemon Raticate(20, "Raticate");
 		StrongPokemon Dragonite(149, "Dragonite");
 
-		Fight(Raticate, Dragonite);
+		Fight3(&Raticate, &Dragonite);
+		Fight3(&Dragonite, &Raticate);
 	}
 };
 
@@ -340,8 +409,9 @@ int main()
 	using namespace std::placeholders;
 	bool continueProgram = true;
 	PokemonFightCalculator pokemonFightCalculator{};
-
 	std::function<Pokemon* (Pokemon*, Pokemon*)> fn = FightFirstWins();
+
+	//auto fn = std::bind(Fight3<Pokemon*, Pokemon*>, _1, _2);
 	pokemonFightCalculator.connect(fn);
 
 	//Reverses the input so the second pokemon starts with bind
