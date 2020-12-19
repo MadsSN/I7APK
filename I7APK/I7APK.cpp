@@ -21,6 +21,10 @@ struct StrongType {
 
 };
 
+struct NoType {
+
+};
+
 class HP
 {
 public:
@@ -73,6 +77,14 @@ struct TypeTraits<StrongType> {
 	static const int attack_c = 13;
 };
 
+template<>
+struct TypeTraits<NoType> {
+	static HP hp() { return 100_hp; };
+	static Attack2 attack() { return 5_attack; };
+	static const int hp_c = 100;
+	static const int attack_c = 13;
+};
+
 
 class Pokemon {
 public:
@@ -82,7 +94,8 @@ public:
 		_attack(attack) {
 		std::cout << "Ordinary ctor " << _navn << "\n";
 	}
-
+	typedef TypeTraits<NoType> type_traits;
+	
 	HP _hp;
 	Attack2 _attack;
 	size_t _pokeIndex;
@@ -409,12 +422,13 @@ int main()
 	using namespace std::placeholders;
 	bool continueProgram = true;
 	PokemonFightCalculator pokemonFightCalculator{};
+	
+	
 	std::function<Pokemon* (Pokemon*, Pokemon*)> fn = FightFirstWins();
-
-	//auto fn = std::bind(Fight3<Pokemon*, Pokemon*>, _1, _2);
+	//Try to find a way to adopt pokemon fight calculator with fight 3 system..
+	//Requeries that the interface changes to something like TypePokemon<T1> from Pokemon
+	//auto fn = [](auto&& arg1, auto&& arg2) { return Fight3(arg1, arg2); };
 	pokemonFightCalculator.connect(fn);
-
-	//Reverses the input so the second pokemon starts with bind
 	pokemonFightCalculator.connect(std::bind(fn, _2, _1));
 	
 	Pokedex pokedex{};
