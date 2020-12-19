@@ -168,6 +168,7 @@ public:
 
 using WeakPokemon = TypePokemon<WeakType>;
 using StrongPokemon = TypePokemon<StrongType>;
+using NoPokemon = TypePokemon<NoType>;
 
 class PrintPokemonNameFunctor {
 public: 
@@ -355,6 +356,27 @@ const Pokemon* Fight2(const P1* p1, const P2* p2) {
 	}
 };
 
+//By folding expression
+//Does not get used as other is more specific. 
+template<typename C, typename... Ps>
+void ComparePokemonToAllOthers(C c, Ps... ps)
+{
+	(Fight3(c, ps), ...);
+}
+
+//By recursive
+template<typename C, typename P, typename... Ps>
+void ComparePokemonToAllOthers(C c, P p, Ps... ps)
+{
+	Fight3(c, p);
+	ComparePokemonToAllOthers(c, ps...);
+}
+
+template<typename C, typename P>
+void ComparePokemonToAllOthers(C c, P p)
+{
+	Fight3(c, p);
+}
 
 class Pokedex {
 public:
@@ -411,6 +433,13 @@ public:
 		Fight3(&Raticate, &Dragonite);
 		Fight3(&Dragonite, &Raticate);
 	}
+
+	void comparePokemontypes() {
+		WeakPokemon Raticate(20, "Raticate");
+		StrongPokemon Dragonite(149, "Dragonite");
+		NoPokemon Søren(899, "Soeren");
+		ComparePokemonToAllOthers(&Raticate, &Raticate, &Dragonite, &Søren);
+	}
 };
 
 
@@ -439,6 +468,7 @@ int main()
 		std::cout << "Press 3 for viewing all pokemon names, sorted by name" << std::endl;
 		std::cout << "Press 4 for starting random fights every few seconds." << std::endl;
 		std::cout << "Press 5 for one predestined fight." << std::endl;
+		std::cout << "Press 6 for WeakType to all other types" << std::endl;
 		std::cout << "Press q for exiting" << std::endl;
 
 		std::cout << "Dit valg: ";
@@ -459,6 +489,9 @@ int main()
 				break;
 			case '5':
 				pokedex.predestinedBattle();
+				break;
+			case '6':
+				pokedex.comparePokemontypes();
 				break;
 			case 'q':
 				continueProgram = false;
