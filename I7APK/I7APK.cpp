@@ -15,18 +15,9 @@
 template <typename T>
 class TypeTraits;
 
-struct WeakType {
-
-};
-
-struct StrongType {
-
-};
-
-struct NoType {
-
-};
-
+struct WeakType {};
+struct StrongType {};
+struct NoType {};
 
 template<>
 struct TypeTraits<WeakType> {
@@ -58,12 +49,11 @@ public:
 		_attack(attack) {
 		std::cout << "Ordinary ctor " << _navn << "\n";
 	}
-	typedef TypeTraits<NoType> type_traits;
 	
-	size_t _hp;
-	size_t _attack;
 	size_t _pokeIndex;
 	std::string _navn;
+	size_t _hp;
+	size_t _attack;
 
 	bool operator==(const Pokemon poke)
 	{
@@ -130,7 +120,7 @@ public:
 
 
 
-template<typename TType, size_t PokedexIndex = 0>
+template<typename TType>
 class TypePokemon : public Pokemon {
 	BOOST_STATIC_ASSERT(
 		boost::is_same<TType, WeakType>::value ||
@@ -143,19 +133,16 @@ public:
 	TypePokemon(size_t index, std::string navn) : Pokemon(index, navn, TypeTraits<TType>::hp_c, TypeTraits<TType>::attack_c)
 	{};
 
-	static const size_t pokedexIndex_c = PokedexIndex;
-
 	typedef TypeTraits<TType> type_traits;
-	typedef typename TypeTraits<TType>::type type;
 };
 
-// need something like this, and then change Pokemons -> CompilePokemons using methods
+
 template<size_t index>
-using WeakCompilePokemon = TypePokemon<WeakType, index>;
+using WeakCompilePokemon = CompilePokemon<WeakType, index>;
 template<size_t index>
-using StrongCompilePokemon = TypePokemon<StrongType, index>;
+using StrongCompilePokemon = CompilePokemon<StrongType, index>;
 template<size_t index>
-using NoCompilePokemon = TypePokemon<NoType, index>;
+using NoCompilePokemon = CompilePokemon<NoType, index>;
 template<size_t index>
 using CompilePokemons = std::variant<WeakCompilePokemon<index>, StrongCompilePokemon<index>, NoCompilePokemon<index>>;
 
@@ -219,32 +206,34 @@ public:
 	}
 };
 
-class PokemonWinner
+template<typename T>
+class PercentageWinner
 {
 public:
-	PokemonWinner()
+	PercentageWinner()
 	{
 		_winnerRate = 0;
 	}
 	
-	PokemonWinner(Pokemons pokemon, int winnerRate) : _pokemon(pokemon), _winnerRate(winnerRate)
+	PercentageWinner(T pokemon, int winnerRate) : _pokemon(pokemon), _winnerRate(winnerRate)
 	{
 	}
-	Pokemons _pokemon;
+	T _pokemon;
 	int _winnerRate;
 };
 
-struct percentage
+template<typename T>
+struct PercentageWin
 {
-	typedef PokemonWinner result_type;
+	typedef PercentageWinner<T> result_type;
 
 	template <typename InputIterator>
-	PokemonWinner operator()(InputIterator first,
+	result_type operator()(InputIterator first,
 		InputIterator last) const
 	{
 		//if (first == last) return result_type();
-		Pokemons p1 = *first++;
-		Pokemons p2 = p1;
+		T p1 = *first++;
+		T p2 = p1;
 		int results = 1;
 		int p1Win = 1;
 		for (; first != last; ++first) {
@@ -271,7 +260,7 @@ struct percentage
 class PokemonFightCalculator
 {
 public:
-	typedef boost::signals2::signal<Pokemons(Pokemons, Pokemons), percentage> PokeSignal;
+	typedef boost::signals2::signal<Pokemons(Pokemons, Pokemons), PercentageWin<Pokemons>> PokeSignal;
 	PokeSignal sig;
 
 	void connect(const PokeSignal::slot_function_type& slot )
@@ -287,18 +276,6 @@ public:
 		<< std::visit(PokeVisitorGetName(), pokemon._pokemon) << " with ratio of " << pokemon._winnerRate << std::endl;
 	}
 };
-
-
-class FightFirstWins
-{
-public:
-
-	Pokemons operator()(const Pokemons& p1, const Pokemons& p2) const
-	{
-		return p1;
-	}
-};
-
 
 
 
