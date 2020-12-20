@@ -44,7 +44,19 @@
     <ClInclude Include="PokemonFightCalculator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FightCompilePokemon.h">
+    <ClInclude Include="FightPokemon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FightRecursivePokemon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FightPokemonAsync.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Pokedex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

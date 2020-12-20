@@ -148,11 +148,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CompilePokemon.h" />
-    <ClInclude Include="FightCompilePokemon.h" />
+    <ClInclude Include="FightPokemonAsync.h" />
+    <ClInclude Include="FightRecursivePokemon.h" />
+    <ClInclude Include="FightPokemon.h" />
     <ClInclude Include="IfThenElse.h" />
+    <ClInclude Include="Pokedex.h" />
     <ClInclude Include="Pokemon.h" />
     <ClInclude Include="PokemonFightCalculator.h" />
     <ClInclude Include="PokemonVariant.h" />
+    <ClInclude Include="TypeList.h" />
     <ClInclude Include="TypePokemon.h" />
     <ClInclude Include="TypeTraits.h" />
   </ItemGroup>
