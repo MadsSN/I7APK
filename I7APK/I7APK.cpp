@@ -8,9 +8,7 @@
 #include <thread>
 #include <algorithm>
 #include <mutex>
-
 #include "boost/signals2.hpp"
-
 
 
 
@@ -29,46 +27,9 @@ struct NoType {
 
 };
 
-class HP
-{
-public:
-	HP(unsigned long long hp) : _hp(hp){}
-	size_t _hp;
-};
-
-HP operator"" _hp(unsigned long long n)
- {
-	return HP(n);
-}
-
-std::ostream& operator<<(std::ostream& out, const HP& c)
-{
-	out << c._hp;
-	return out;
-}
-
-class Attack2
-{
-public:
-	Attack2(unsigned long long attack) : _attack(attack) {}
-	size_t _attack;
-};
-
-Attack2 operator"" _attack(unsigned long long n)
-{
-	return Attack2(n);
-}
-
-std::ostream& operator<<(std::ostream& out, const Attack2& c)
-{
-	out << c._attack;
-	return out;
-}
 
 template<>
 struct TypeTraits<WeakType> {
-	static HP hp() { return 50_hp; };
-	static Attack2 attack() { return 10_attack; };
 	static const int hp_c = 50;
 	static const int attack_c = 5;
 	typedef WeakType type;
@@ -76,8 +37,6 @@ struct TypeTraits<WeakType> {
 
 template<>
 struct TypeTraits<StrongType> {
-	static HP hp() { return 100_hp; };
-	static Attack2 attack() { return 5_attack; };
 	static const int hp_c = 100;
 	static const int attack_c = 13;
 	typedef StrongType type;
@@ -85,8 +44,6 @@ struct TypeTraits<StrongType> {
 
 template<>
 struct TypeTraits<NoType> {
-	static HP hp() { return 100_hp; };
-	static Attack2 attack() { return 5_attack; };
 	static const int hp_c = 100;
 	static const int attack_c = 13;
 	typedef NoType type;
@@ -95,18 +52,16 @@ struct TypeTraits<NoType> {
 
 class Pokemon {
 public:
-	Pokemon(size_t index, std::string navn, HP hp, Attack2 attack) : _pokeIndex(index),
+	Pokemon(size_t index, std::string navn, size_t hp, size_t attack) : _pokeIndex(index),
 		_navn(navn),
 		_hp(hp),
 		_attack(attack) {
 		std::cout << "Ordinary ctor " << _navn << "\n";
-		std::cout << "Ordinary ctor " << _hp << "\n";
-		std::cout << "Ordinary ctor " << _attack << "\n";
 	}
 	typedef TypeTraits<NoType> type_traits;
 	
-	HP _hp;
-	Attack2 _attack;
+	size_t _hp;
+	size_t _attack;
 	size_t _pokeIndex;
 	std::string _navn;
 
@@ -121,8 +76,8 @@ public:
 	}
 
 	Pokemon(Pokemon&& poke) noexcept :
-		_hp(0_hp),
-		_attack(0_attack)
+		_hp(0),
+		_attack(0)
 	{
 		swap(*this, poke);
 		std::cout << "Move ctor " << _navn << "\n";
@@ -156,9 +111,6 @@ public:
 };
 
 
-
-
-
 template<typename TType, size_t PokedexIndex = 0>
 class TypePokemon : public Pokemon {
 	BOOST_STATIC_ASSERT(
@@ -169,7 +121,7 @@ public:
 	TypePokemon() : TypePokemon(0, "")
 	{};
 	
-	TypePokemon(size_t index, std::string navn) : Pokemon(index, navn, TypeTraits<TType>::hp(), TypeTraits<TType>::attack())
+	TypePokemon(size_t index, std::string navn) : Pokemon(index, navn, TypeTraits<TType>::hp_c, TypeTraits<TType>::attack_c)
 	{};
 
 	static const size_t pokedexIndex_c = PokedexIndex;
@@ -177,6 +129,7 @@ public:
 	typedef TypeTraits<TType> type_traits;
 	typedef typename TypeTraits<TType>::type type;
 };
+
 
 using WeakPokemon = TypePokemon<WeakType>;
 using StrongPokemon = TypePokemon<StrongType>;
@@ -468,12 +421,12 @@ void asyncThreadBattle(std::mutex& m, std::condition_variable& c, Pokemons& p, i
 	Pokemon pb = std::visit(PokeGetBase(), p);
 	std::unique_lock<std::mutex> ul(m);
 	//Wait for battle to start
-	while (pb._hp._hp > 0)
+	while (pb._hp > 0)
 	{
-		lastAttack = pb._attack._attack;
+		lastAttack = pb._attack;
 		//Notify and wait to get notified back.
 		c.notify_one();
-		c.wait(ul, [&] {return pb._attack._attack != lastAttack; });
+		c.wait(ul, [&] {return pb._attack != lastAttack; });
 		//Win and exit condition
 		if (lastAttack < 0)
 		{
@@ -481,11 +434,11 @@ void asyncThreadBattle(std::mutex& m, std::condition_variable& c, Pokemons& p, i
 			return;
 		}
 		//Bussiness logic
-		pb._hp._hp = (pb._hp._hp - lastAttack) < 0 ? 0 : (pb._hp._hp - lastAttack);
+		pb._hp = (pb._hp - lastAttack) < 0 ? 0 : (pb._hp - lastAttack);
 		std::cout << pb._navn << " has " << pb._hp << " after being attacked by " << lastAttack << std::endl;
 
 		//Lose and exit condition
-		if (pb._hp._hp == 0)
+		if (pb._hp == 0)
 		{
 			std::cout << pb._navn << " lost" << std::endl;
 			lastAttack = -1;
