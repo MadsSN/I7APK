@@ -18,22 +18,8 @@
     <ClCompile Include="I7APK.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pokemonVariant.h">
-      <Filter>Header Files</Filter>
+    <ClCompile Include="Pokemon.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fightCalculatorSignal.h">
-      <Filter>Header Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="pokemon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="traits.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="typePokemon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

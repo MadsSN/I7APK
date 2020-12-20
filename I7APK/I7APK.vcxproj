@@ -143,14 +143,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="fightCalculatorSignal.h" />
     <ClCompile Include="I7APK.cpp" />
-    <ClCompile Include="pokemonVariant.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="pokemon.h" />
-    <ClInclude Include="traits.h" />
-    <ClInclude Include="typePokemon.h" />
+    <ClCompile Include="Pokemon.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
