@@ -2,16 +2,7 @@
 
 #include "TypePokemon.h"
 #include <iostream>
-#include <list>
-#include <iterator>
-#include <thread>
-#include <algorithm>
-#include <mutex>
-#include "boost/signals2.hpp"
-#include "CompilePokemon.h"
-#include "TypeTraits.h"
 #include  <variant>
-#include "Pokemon.h"
 
 struct PokeVisitor
 {

@@ -41,5 +41,11 @@
     <ClInclude Include="PokemonVariant.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PokemonFightCalculator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FightCompilePokemon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

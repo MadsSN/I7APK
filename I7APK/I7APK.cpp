@@ -15,112 +15,14 @@
 #include "Pokemon.h"
 #include "TypePokemon.h"
 #include "PokemonVariant.h"
+#include "PokemonFightCalculator.h"
+#include "FightCompilePokemon.h"
 
 class PrintPokemonNameFunctor {
 public: 
 	void operator() (std::string name) const {
 		std::cout << name << std::endl;
 	}
-};
-
-template<typename T>
-class PercentageWinner
-{
-public:
-	PercentageWinner()
-	{
-		_winnerRate = 0;
-	}
-	
-	PercentageWinner(T pokemon, int winnerRate) : _pokemon(pokemon), _winnerRate(winnerRate)
-	{
-	}
-	T _pokemon;
-	int _winnerRate;
-};
-
-template<typename T>
-struct PercentageWin
-{
-	typedef PercentageWinner<T> result_type;
-
-	template <typename InputIterator>
-	result_type operator()(InputIterator first,
-		InputIterator last) const
-	{
-		//if (first == last) return result_type();
-		T p1 = *first++;
-		T p2 = p1;
-		int results = 1;
-		int p1Win = 1;
-		for (; first != last; ++first) {
-			results++;
-			if (p1.index() == (*first).index()) {
-				p1Win++;
-			}else if(p1.index() == p2.index())
-			{
-				p2 = *first;
-			}
-		}
-		int winProcent = (100 * p1Win) / results;
-		if(winProcent > 50)
-		{
-			return result_type(p1, winProcent);
-		}else
-		{
-			return result_type(p2, 100 - winProcent);
-		}
-		
-	}
-};
-
-class PokemonFightCalculator
-{
-public:
-	typedef boost::signals2::signal<PokemonVariant(PokemonVariant, PokemonVariant), PercentageWin<PokemonVariant>> PokeSignal;
-	PokeSignal sig;
-
-	void connect(const PokeSignal::slot_function_type& slot )
-	{
-		sig.connect(slot);
-	}
-	
-	void fight(PokemonVariant p1, PokemonVariant p2) const
-	{
-		PokeSignal::result_type pokemon = sig(p1,p2);
-		std::cout << "Winner between: " << p1.name() << " and "
-			<< p2.name() << " is: "
-		<< pokemon._pokemon.name() << " with ratio of " << pokemon._winnerRate << std::endl;
-	}
-};
-
-
-
-template<int health, int dmg>
-struct Attack {
-	inline static const int hp = (health - dmg) < 0 ? 0 : (health - dmg);
-};
-
-template<const int p1_dmg, const int p1_hp, const int p2_dmg, const int p2_hp>
-void Fight(const std::string& p1_name, const std::string& p2_name) {
-	std::cout << p1_name << " has " << p1_hp << " hp" << std::endl;
-
-	if constexpr (p1_hp == 0) {
-		std::cout << p1_name << " died for your entertainment" << std::endl;
-	}
-	else {
-		// give dmg
-		std::cout << p1_name << " survived and attacks " << p2_name << " for " << p1_dmg << " hp" << std::endl;
-		// next round
-		Fight<p2_dmg, Attack<p2_hp, p1_dmg>::hp, p1_dmg, p1_hp>(p2_name, p1_name);
-	}
-};
-
-template<typename P1, typename P2>
-void Fight(const P1& p1, const P2& p2) {
-	std::cout << "BATTLE MUSIC" << std::endl;
-
-	Fight<P1::type_traits::attack_c, P1::type_traits::hp_c, P2::type_traits::attack_c, P2::type_traits::hp_c>(p1.name, p2.name);
 };
 
 
@@ -327,8 +229,7 @@ public:
 		CompilePokemon<WeakType, 20> Raticate("Raticate");
 		CompilePokemon<StrongType, 149> Dragonite("Dragonite");
 
-		Fight(Raticate, Dragonite);
-		Fight(Dragonite, Raticate);
+		FightCompilePokemon(Raticate, Dragonite);
 	}
 
 	void comparePokemontypes() {
