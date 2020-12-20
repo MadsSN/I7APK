@@ -463,6 +463,37 @@ template<typename TypeList, unsigned index>
 struct AtIndex : AtIndex<typename TypeList::Rest, index - 1> {
 };
 
+void asyncThreadBattle(std::mutex& m, std::condition_variable& c, Pokemons& p, int& lastAttack)
+{
+	Pokemon pb = std::visit(PokeGetBase(), p);
+	std::unique_lock<std::mutex> ul(m);
+	//Wait for battle to start
+	while (pb._hp._hp > 0)
+	{
+		lastAttack = pb._attack._attack;
+		//Notify and wait to get notified back.
+		c.notify_one();
+		c.wait(ul, [&] {return pb._attack._attack != lastAttack; });
+		//Win and exit condition
+		if (lastAttack < 0)
+		{
+			std::cout << pb._navn << " won" << std::endl;
+			return;
+		}
+		//Bussiness logic
+		pb._hp._hp = (pb._hp._hp - lastAttack) < 0 ? 0 : (pb._hp._hp - lastAttack);
+		std::cout << pb._navn << " has " << pb._hp << " after being attacked by " << lastAttack << std::endl;
+
+		//Lose and exit condition
+		if (pb._hp._hp == 0)
+		{
+			std::cout << pb._navn << " lost" << std::endl;
+			lastAttack = -1;
+			c.notify_one();
+			return;
+		}
+	}
+}
 
 template<typename TypeList>
 struct AtIndex<TypeList, 0> {
@@ -491,39 +522,6 @@ struct printImpl<NullNodeType> {
 template<typename TypeList>
 inline static const std::string Print = printImpl<TypeList>::Print;
 
-
-void asyncThreadBattle(std::mutex& m, std::condition_variable& c, Pokemons& p, int& lastAttack)
-{
-	Pokemon pb = std::visit(PokeGetBase(), p);
-	std::unique_lock<std::mutex> ul(m);
-	//Wait for battle to start
-	while(pb._hp._hp > 0)
-	{
-		lastAttack = pb._attack._attack;
-		//Notify and wait to get notified back.
-		c.notify_one();
-		c.wait(ul, [&] {return pb._attack._attack != lastAttack; });
-		//Win and exit condition
-		if(lastAttack < 0)
-		{
-			std::cout << pb._navn << " won" << std::endl;
-			return;
-		}
-
-		//Bussiness logic
-		pb._hp._hp = (pb._hp._hp - lastAttack) < 0 ? 0 : (pb._hp._hp - lastAttack);
-		std::cout << pb._navn << " has " << pb._hp << " after being attacked by " << lastAttack << std::endl;
-
-		//Lose and exit condition
-		if(pb._hp._hp == 0)
-		{
-			std::cout << pb._navn << " lost" << std::endl;
-			lastAttack = -1;
-			c.notify_one();
-			return;
-		}
-	}
-}
 
 class Pokedex {
 public:
