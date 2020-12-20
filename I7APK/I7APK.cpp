@@ -306,11 +306,9 @@ void Fight(const P1& p1, const P2& p2) {
 	Fight<P1::type_traits::attack_c, P1::type_traits::hp_c, P2::type_traits::attack_c, P2::type_traits::hp_c>(p1.name, p2.name);
 };
 
-template<typename P1, typename P2>
-struct is_first_winner
-{
-	inline static constexpr bool value = P1::type_traits::hp_c / P2::type_traits::attack_c > P2::type_traits::hp_c / P1::type_traits::attack_c;
-};
+
+
+
 
 struct FirstWinTag {};
 struct SecondWinTag {};
@@ -331,12 +329,53 @@ struct IfThenElse < Ttrue, Tfalse, true>
 	typedef Ttrue Type;
 };
 
+
 template<typename P1, typename P2>
-Pokemons Fight3(P1& p1, P2& p2)
+struct is_first_winner
 {
-	return Fight3Impl(p1, p2,
+	inline static constexpr bool value = P1::type_traits::hp_c / P2::type_traits::attack_c > P2::type_traits::hp_c / P1::type_traits::attack_c;
+};
+
+template<typename P1, typename P2>
+Pokemons FightWithTags(P1& p1, P2& p2)
+{
+	return FightWithTagsImpl(p1, p2,
 		typename IfThenElse<FirstWinTag, SecondWinTag, is_first_winner<P1, P2>::value>::Type());
 }
+
+template<typename P1, typename P2>
+P1& FightWithTagsImpl(P1& p1, P2& p2, FirstWinTag)
+{
+	std::cout << "BATTLE MUSIC - First winner chicken dinner" << std::endl;
+	std::cout << p1._navn << " won!" << std::endl;
+	std::cout << "and " << p2._navn << " died for your entertainment" << std::endl;
+	return p1;
+}
+
+template<typename P1, typename P2>
+P2& FightWithTagsImpl(P1& p1, P2& p2, SecondWinTag)
+{
+	std::cout << "BATTLE MUSIC - Second winner chicken dinner" << std::endl;
+	std::cout << p2._navn << " won!" << std::endl;
+	std::cout << "and " << p1._navn << " died for your entertainment" << std::endl;
+	return p2;
+}
+
+template<typename P1, typename P2>
+const Pokemon* FightWithConstexpr2(const P1* p1, const P2* p2) {
+	std::cout << "BATTLE MUSIC" << std::endl;
+	if constexpr (is_first_winner<P1, P2>::value) {
+		std::cout << p1->_navn << " won!" << std::endl;
+		std::cout << "and " << p2->_navn << " died for your entertainment" << std::endl;
+		return p1;
+	}
+	else {
+		std::cout << p1->_navn << " died for your entertainment" << std::endl;
+		std::cout << "and " << p2->_navn << " won!" << std::endl;
+		return p2;
+	}
+};
+
 
 struct PokeBattleVisitor
 {
@@ -354,56 +393,14 @@ Pokemons Fight3(Pokemons p1, Pokemons p2)
 
 
 
-template<typename P1, typename P2>
-P1& Fight3Impl(P1& p1, P2& p2, FirstWinTag)
-{
-	std::cout << "BATTLE MUSIC - First winner chicken dinner" << std::endl;
-	std::cout << p1._navn << " won!" << std::endl;
-	std::cout << "and " << p2._navn << " died for your entertainment" << std::endl;
-	return p1;
-}
-
-template<typename P1, typename P2>
-P2& Fight3Impl(P1& p1, P2& p2, SecondWinTag)
-{
-	std::cout << "BATTLE MUSIC - Second winner chicken dinner" << std::endl;
-	std::cout << p2._navn << " won!" << std::endl;
-	std::cout << "and " << p1._navn << " died for your entertainment" << std::endl;
-	return p2;
-}
-
-template<typename P1, typename P2>
-const Pokemon* Fight2(const P1* p1, const P2* p2) {
-	std::cout << "BATTLE MUSIC" << std::endl;
-	if constexpr (is_first_winner<P1,P2>::value) {
-		std::cout << p1->_navn << " won!" << std::endl;
-		std::cout << "and " << p2->_navn << " died for your entertainment" << std::endl;
-		return p1;
-	}
-	else {
-		std::cout << p1->_navn << " died for your entertainment" << std::endl;
-		std::cout << "and " << p2->_navn << " won!" << std::endl;
-		return p2;
-	}
-};
-
-//By folding expression
-//Does not get used as other is more specific. 
-template<typename C, typename... Ps>
-void ComparePokemonToAllOthers(C c, Ps... ps)
-{
-	(Fight3(c, ps), ...);
-}
-
 //By recursive
-//Leveraging visitor pattern..Do not need to know what self is. 
 void ComparePokemonToAllOthers(Pokemons& challenger, std::list<Pokemons>& pokemons)
 {
 	for (std::list<Pokemons>::const_iterator pokeIter = pokemons.begin(); pokeIter != pokemons.end(); ++pokeIter)
 	{
 		std::visit([](auto&& arg, auto&& arg2)
 		{
-			Fight3(arg, arg2);
+			FightWithTags(arg, arg2);
 		}, challenger,*pokeIter);
 	}
 }
@@ -494,10 +491,7 @@ public:
 		_pokemons.emplace_back(StrongPokemon(5, "Charmeleon" ));
 		_pokemons.emplace_back(StrongPokemon(6, "Charizard" ));
 	}
-
-	//Delegating constructor
-	Pokedex(std::list<Pokemons> pokemons) : _pokemons(pokemons) {}
-
+	
 	void printAllRangeBased() {
 		for (const auto& pokemon : _pokemons) {
 			std::visit(PokeVisitor(), pokemon);
