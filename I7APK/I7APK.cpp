@@ -5,7 +5,10 @@
 #include <list>
 #include <iterator>
 #include <variant>
+#include <thread>
 #include <algorithm>
+#include <mutex>
+
 #include "boost/signals2.hpp"
 
 
@@ -94,6 +97,8 @@ public:
 		_hp(hp),
 		_attack(attack) {
 		std::cout << "Ordinary ctor " << _navn << "\n";
+		std::cout << "Ordinary ctor " << _hp << "\n";
+		std::cout << "Ordinary ctor " << _attack << "\n";
 	}
 	typedef TypeTraits<NoType> type_traits;
 	
@@ -196,6 +201,18 @@ struct PokeVisitorGetName
 		return arg._navn;
 	}
 };
+
+
+struct PokeGetBase
+{
+	template<typename T>
+	Pokemon operator()(const T& arg)
+	{
+		return arg;
+	}
+};
+
+
 
 std::ostream& operator<<(std::ostream& out, const Pokemons& c)
 {
@@ -422,6 +439,38 @@ void ComparePokemonToAllOthers(Pokemons& challenger, std::list<Pokemons>& pokemo
 	}
 }
 
+void asyncThreadBattle(std::mutex& m, std::condition_variable& c, Pokemons& p, int& lastAttack)
+{
+	Pokemon pb = std::visit(PokeGetBase(), p);
+	std::unique_lock<std::mutex> ul(m);
+	//Wait for battle to start
+	while(pb._hp._hp > 0)
+	{
+		lastAttack = pb._attack._attack;
+		//Notify and wait to get notified back.
+		c.notify_one();
+		c.wait(ul, [&] {return pb._attack._attack != lastAttack; });
+		//Win and exit condition
+		if(lastAttack < 0)
+		{
+			std::cout << pb._navn << " won" << std::endl;
+			return;
+		}
+
+		//Bussiness logic
+		pb._hp._hp = (pb._hp._hp - lastAttack) < 0 ? 0 : (pb._hp._hp - lastAttack);
+		std::cout << pb._navn << " has " << pb._hp << " after being attacked by " << lastAttack << std::endl;
+
+		//Lose and exit condition
+		if(pb._hp._hp == 0)
+		{
+			std::cout << pb._navn << " lost" << std::endl;
+			lastAttack = -1;
+			c.notify_one();
+			return;
+		}
+	}
+}
 
 class Pokedex {
 public:
@@ -488,6 +537,22 @@ public:
 		Pokemons challenger = Dragonite;
 		ComparePokemonToAllOthers(challenger, _pokemons);
 	}
+
+
+	
+	void asyncTurnBattle()
+	{
+		std::mutex m;
+		std::condition_variable cond;
+		int lastAttack = 0;
+		std::thread t1(asyncThreadBattle, std::ref(m), 
+			std::ref(cond), std::ref(_pokemons.front()),std::ref(lastAttack));
+		std::thread t2(asyncThreadBattle, std::ref(m), 
+			std::ref(cond), std::ref(_pokemons.back()), std::ref(lastAttack));
+		
+		t1.join();
+		t2.join();
+	}
 };
 
 
@@ -517,6 +582,7 @@ int main()
 		std::cout << "Press 4 for starting random fights every few seconds." << std::endl;
 		std::cout << "Press 5 for one predestined fight." << std::endl;
 		std::cout << "Press 6 for WeakType to all other types" << std::endl;
+		std::cout << "Press 7 for starting slow turnbased battle" << std::endl;
 		std::cout << "Press q for exiting" << std::endl;
 
 		std::cout << "Dit valg: ";
@@ -540,6 +606,9 @@ int main()
 				break;
 			case '6':
 				pokedex.comparePokemontypes();
+				break;
+			case '7':
+				pokedex.asyncTurnBattle();
 				break;
 			case 'q':
 				continueProgram = false;
