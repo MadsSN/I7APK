@@ -349,7 +349,7 @@ int main()
 	pokemonFightCalculator.connect(fn);
 
 	//Reverses the input so the second pokemon starts with bind
-	pokemonFightCalculator.connect(std::bind(fn, _2, _1));
+	pokemonFightCalculator.connect(std::bind(fn, std::placeholders::_2, std::placeholders::_1));
 	
 	Pokedex pokedex{};
 	while (continueProgram) {
