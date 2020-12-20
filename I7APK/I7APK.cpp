@@ -61,16 +61,16 @@ P2& FightWithTagsImpl(P1& p1, P2& p2, SecondWinTag)
 }
 
 template<typename P1, typename P2>
-const Pokemon* FightWithConstexpr2(const P1* p1, const P2* p2) {
+const PokemonVariant FightWithConstexpr2(P1& p1, P2& p2) {
 	std::cout << "BATTLE MUSIC" << std::endl;
-	if constexpr (is_first_winner<P1, P2>::value) {
-		std::cout << p1->_navn << " won!" << std::endl;
-		std::cout << "and " << p2->_navn << " died for your entertainment" << std::endl;
+	if constexpr (is_first_winner<P1, P2>::value) { 
+		std::cout << p1._navn << " won!" << std::endl;
+		std::cout << "and " << p2._navn << " died for your entertainment" << std::endl;
 		return p1;
 	}
 	else {
-		std::cout << p1->_navn << " died for your entertainment" << std::endl;
-		std::cout << "and " << p2->_navn << " won!" << std::endl;
+		std::cout << p1._navn << " died for your entertainment" << std::endl;
+		std::cout << "and " << p2._navn << " won!" << std::endl;
 		return p2;
 	}
 };
@@ -81,7 +81,7 @@ struct PokeBattleVisitor
 	template<typename P1, typename P2>
 	PokemonVariant operator()(const P1& arg, const P2& challenger)
 	{
-		return FightWithTags(challenger, arg);
+		return FightWithConstexpr2(challenger, arg);
 	}
 };
 
@@ -99,7 +99,7 @@ void ComparePokemonToAllOthers(PokemonVariant& challenger, std::list<PokemonVari
 	{
 		std::visit([](auto&& arg, auto&& arg2)
 		{
-			FightWithTags(arg, arg2);
+			FightWithConstexpr2(arg, arg2);
 		}, challenger,*pokeIter);
 	}
 }
