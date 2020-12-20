@@ -13,31 +13,6 @@
 #include  <variant>
 #include "Pokemon.h"
 
-struct PokemonVariant : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
-{
-	PokemonVariant() = default;
-
-	template<typename T>
-	PokemonVariant(const T& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
-	{
-		
-	};
-
-	std::string name();
-
-	size_t hp();
-
-	size_t attack();
-
-	size_t pokeIndex();
-
-	const Pokemon& get() const;
-
-	void print() const;
-};
-
-std::ostream& operator<<(std::ostream& out, const PokemonVariant& c);
-
 struct PokeVisitor
 {
 	template<typename T>
@@ -55,3 +30,46 @@ struct PokeGetBase
 		return arg;
 	}
 };
+
+struct PokemonVariant : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
+{
+	PokemonVariant() = default;
+
+	template<typename T>
+	PokemonVariant(const T& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
+	{
+		
+	};
+
+	std::string name() {
+		return get()._navn;
+	}
+
+	size_t hp() {
+		return get()._hp;
+	}
+
+	size_t attack() {
+		return get()._attack;
+	}
+
+	size_t pokeIndex() {
+		return get()._pokeIndex;
+	}
+
+	const Pokemon& get() const
+	{
+		return std::visit(PokeGetBase(), *this);
+	}
+
+	void print() const
+	{
+		std::cout << get() << std::endl;
+	}
+};
+
+std::ostream& operator<<(std::ostream& out, const PokemonVariant& c)
+{
+	std::visit(PokeVisitor(), c);
+	return out;
+}

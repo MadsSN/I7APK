@@ -145,7 +145,6 @@
   <ItemGroup>
     <ClCompile Include="I7APK.cpp" />
     <ClCompile Include="Pokemon.cpp" />
-    <ClCompile Include="PokemonVariant.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CompilePokemon.h" />
