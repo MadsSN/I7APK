@@ -151,10 +151,6 @@ using CompilePokemons = std::variant<WeakCompilePokemon<index>, StrongCompilePok
 using WeakPokemon = TypePokemon<WeakType>;
 using StrongPokemon = TypePokemon<StrongType>;
 using NoPokemon = TypePokemon<NoType>;
-//using PokemonVariant = std::variant<WeakPokemon, StrongPokemon, NoPokemon>;
-
-
-
 
 std::ostream& operator<<(std::ostream& out, const Pokemon& c)
 {
@@ -177,7 +173,7 @@ struct PokeVisitor
 struct PokeGetBase
 {
 	template<typename T>
-	Pokemon operator()(const T& arg)
+	const Pokemon& operator()(const T& arg)
 	{
 		return arg;
 	}
@@ -206,12 +202,12 @@ struct PokemonVariant : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
 		return get()._pokeIndex;
 	}
 	
-	Pokemon get()
+	const Pokemon& get() const
 	{
 		return std::visit(PokeGetBase(), *this);
 	}
 
-	Pokemon print()
+	void print() const 
 	{
 		std::cout << get() << std::endl;
 	}
@@ -519,7 +515,7 @@ public:
 	
 	void printAllRangeBased() {
 		for (const auto& pokemon : _pokemons) {
-			std::visit(PokeVisitor(), pokemon);
+			pokemon.print();
 		}
 	}
 
