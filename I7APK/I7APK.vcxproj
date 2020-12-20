@@ -145,9 +145,15 @@
   <ItemGroup>
     <ClCompile Include="I7APK.cpp" />
     <ClCompile Include="Pokemon.cpp" />
+    <ClCompile Include="PokemonVariant.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CompilePokemon.h" />
     <ClInclude Include="IfThenElse.h" />
+    <ClInclude Include="Pokemon.h" />
+    <ClInclude Include="PokemonVariant.h" />
+    <ClInclude Include="TypePokemon.h" />
+    <ClInclude Include="TypeTraits.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
