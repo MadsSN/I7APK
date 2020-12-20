@@ -143,6 +143,7 @@ template<size_t index>
 using StrongCompilePokemon = CompilePokemon<StrongType, index>;
 template<size_t index>
 using NoCompilePokemon = CompilePokemon<NoType, index>;
+
 template<size_t index>
 using CompilePokemons = std::variant<WeakCompilePokemon<index>, StrongCompilePokemon<index>, NoCompilePokemon<index>>;
 
@@ -150,7 +151,8 @@ using CompilePokemons = std::variant<WeakCompilePokemon<index>, StrongCompilePok
 using WeakPokemon = TypePokemon<WeakType>;
 using StrongPokemon = TypePokemon<StrongType>;
 using NoPokemon = TypePokemon<NoType>;
-using Pokemons = std::variant<WeakPokemon, StrongPokemon, NoPokemon>;
+//using PokemonVariant = std::variant<WeakPokemon, StrongPokemon, NoPokemon>;
+
 
 
 
@@ -172,17 +174,6 @@ struct PokeVisitor
 	}
 };
 
-
-struct PokeVisitorGetName
-{
-	template<typename T>
-	std::string operator()(const T& arg)
-	{
-		return arg._navn;
-	}
-};
-
-
 struct PokeGetBase
 {
 	template<typename T>
@@ -192,8 +183,42 @@ struct PokeGetBase
 	}
 };
 
+struct PokemonVariant : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
+{
+	PokemonVariant() = default;
 
-std::ostream& operator<<(std::ostream& out, const Pokemons& c)
+	template<typename T>
+	PokemonVariant(const T& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x) {}
+
+	std::string name(){
+		return get()._navn;
+	}
+
+	size_t hp() {
+		return get()._hp;
+	}
+
+	size_t attack() {
+		return get()._attack;
+	}
+
+	size_t pokeIndex() {
+		return get()._pokeIndex;
+	}
+	
+	Pokemon get()
+	{
+		return std::visit(PokeGetBase(), *this);
+	}
+
+	Pokemon print()
+	{
+		std::cout << get() << std::endl;
+	}
+};
+
+
+std::ostream& operator<<(std::ostream& out, const PokemonVariant& c)
 {
 	out << c;
 	return out;
@@ -260,7 +285,7 @@ struct PercentageWin
 class PokemonFightCalculator
 {
 public:
-	typedef boost::signals2::signal<Pokemons(Pokemons, Pokemons), PercentageWin<Pokemons>> PokeSignal;
+	typedef boost::signals2::signal<PokemonVariant(PokemonVariant, PokemonVariant), PercentageWin<PokemonVariant>> PokeSignal;
 	PokeSignal sig;
 
 	void connect(const PokeSignal::slot_function_type& slot )
@@ -268,12 +293,12 @@ public:
 		sig.connect(slot);
 	}
 	
-	void fight(Pokemons p1, Pokemons p2) const
+	void fight(PokemonVariant p1, PokemonVariant p2) const
 	{
 		PokeSignal::result_type pokemon = sig(p1,p2);
-		std::cout << "Winner between: " << std::visit(PokeVisitorGetName(), p1) << " and "
-			<< std::visit(PokeVisitorGetName(), p2) << " is: "
-		<< std::visit(PokeVisitorGetName(), pokemon._pokemon) << " with ratio of " << pokemon._winnerRate << std::endl;
+		std::cout << "Winner between: " << p1.name() << " and "
+			<< p2.name() << " is: "
+		<< pokemon._pokemon.name() << " with ratio of " << pokemon._winnerRate << std::endl;
 	}
 };
 
@@ -337,7 +362,7 @@ struct is_first_winner
 };
 
 template<typename P1, typename P2>
-Pokemons FightWithTags(P1& p1, P2& p2)
+PokemonVariant FightWithTags(P1& p1, P2& p2)
 {
 	return FightWithTagsImpl(p1, p2,
 		typename IfThenElse<FirstWinTag, SecondWinTag, is_first_winner<P1, P2>::value>::Type());
@@ -380,13 +405,13 @@ const Pokemon* FightWithConstexpr2(const P1* p1, const P2* p2) {
 struct PokeBattleVisitor
 {
 	template<typename P1, typename P2>
-	Pokemons operator()(const P1& arg, const P2& challenger)
+	PokemonVariant operator()(const P1& arg, const P2& challenger)
 	{
 		return Fight3(challenger, arg);
 	}
 };
 
-Pokemons Fight3(Pokemons p1, Pokemons p2)
+PokemonVariant Fight3(PokemonVariant p1, PokemonVariant p2)
 {
 	return std::visit(PokeBattleVisitor(), p1, p2);
 }
@@ -394,9 +419,9 @@ Pokemons Fight3(Pokemons p1, Pokemons p2)
 
 
 //By recursive
-void ComparePokemonToAllOthers(Pokemons& challenger, std::list<Pokemons>& pokemons)
+void ComparePokemonToAllOthers(PokemonVariant& challenger, std::list<PokemonVariant>& pokemons)
 {
-	for (std::list<Pokemons>::const_iterator pokeIter = pokemons.begin(); pokeIter != pokemons.end(); ++pokeIter)
+	for (std::list<PokemonVariant>::const_iterator pokeIter = pokemons.begin(); pokeIter != pokemons.end(); ++pokeIter)
 	{
 		std::visit([](auto&& arg, auto&& arg2)
 		{
@@ -405,7 +430,7 @@ void ComparePokemonToAllOthers(Pokemons& challenger, std::list<Pokemons>& pokemo
 	}
 }
 
-void asyncThreadBattle(std::mutex& m, std::condition_variable& c, Pokemons& p, int& lastAttack)
+void asyncThreadBattle(std::mutex& m, std::condition_variable& c, PokemonVariant& p, int& lastAttack)
 {
 	Pokemon pb = std::visit(PokeGetBase(), p);
 	std::unique_lock<std::mutex> ul(m);
@@ -481,7 +506,7 @@ inline static const std::string Print = printImpl<TypeList>::Print;
 
 class Pokedex {
 public:
-	std::list<Pokemons> _pokemons;
+	std::list<PokemonVariant> _pokemons;
 	Pokedex()
 	{
 		_pokemons.emplace_back(WeakPokemon(1, "Bulbasaur"));
@@ -499,7 +524,7 @@ public:
 	}
 
 	void printAllIterator() {
-		for (std::list<Pokemons>::const_iterator pokeIter = _pokemons.begin(); pokeIter != _pokemons.end(); ++pokeIter)
+		for (std::list<PokemonVariant>::const_iterator pokeIter = _pokemons.begin(); pokeIter != _pokemons.end(); ++pokeIter)
 		{
 			std::visit(PokeVisitor(), *pokeIter);
 		}
@@ -512,7 +537,7 @@ public:
 		std::transform(_pokemons.begin(),
 			_pokemons.end(),
 			std::back_inserter(nameOfPokemon),
-			[](Pokemons pokemon) {return std::visit(PokeVisitorGetName(), pokemon); }
+			[](PokemonVariant pokemon) {return pokemon.name(); }
 		);
 
 		nameOfPokemon.sort();
@@ -538,7 +563,7 @@ public:
 		WeakPokemon Raticate(20, "Raticate");
 		StrongPokemon Dragonite(149, "Dragonite");
 		NoPokemon Søren(899, "Soeren");
-		Pokemons challenger = Dragonite;
+		PokemonVariant challenger = Dragonite;
 		ComparePokemonToAllOthers(challenger, _pokemons);
 	}
 
@@ -612,7 +637,7 @@ int main()
 	PokemonFightCalculator pokemonFightCalculator{};
 	
 	
-	//std::function<Pokemons (Pokemons, Pokemons)> fn = &Fight3;
+	//std::function<PokemonVariant (PokemonVariant, PokemonVariant)> fn = &Fight3;
 	//Try to find a way to adopt pokemon fight calculator with fight 3 system..
 	//Requeries that the interface changes to something like TypePokemon<T1> from Pokemon
 	auto fn = [](auto&& arg1, auto&& arg2) { return Fight3(arg1, arg2); };
