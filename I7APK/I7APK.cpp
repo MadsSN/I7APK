@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <mutex>
 #include "boost/signals2.hpp"
-
+#include "IfThenElse.h"
 
 
 template <typename T>
@@ -333,23 +333,6 @@ void Fight(const P1& p1, const P2& p2) {
 
 struct FirstWinTag {};
 struct SecondWinTag {};
-
-/*Taken from slides*/
-template < typename Ttrue, typename Tfalse, bool>
-struct IfThenElse;
-
-template <typename Ttrue, typename Tfalse>
-struct IfThenElse < Ttrue, Tfalse, false>
-{
-	 typedef Tfalse Type;
-};
-
-template <typename Ttrue, typename Tfalse>
-struct IfThenElse < Ttrue, Tfalse, true>
-{
-	typedef Ttrue Type;
-};
-
 
 template<typename P1, typename P2>
 struct is_first_winner
