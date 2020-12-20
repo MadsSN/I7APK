@@ -407,7 +407,7 @@ struct PokeBattleVisitor
 	template<typename P1, typename P2>
 	PokemonVariant operator()(const P1& arg, const P2& challenger)
 	{
-		return Fight3(challenger, arg);
+		return FightWithTags(challenger, arg);
 	}
 };
 
@@ -560,10 +560,7 @@ public:
 	}
 
 	void comparePokemontypes() {
-		WeakPokemon Raticate(20, "Raticate");
-		StrongPokemon Dragonite(149, "Dragonite");
-		NoPokemon Søren(899, "Soeren");
-		PokemonVariant challenger = Dragonite;
+		PokemonVariant challenger = StrongPokemon(149, "Dragonite");
 		ComparePokemonToAllOthers(challenger, _pokemons);
 	}
 
