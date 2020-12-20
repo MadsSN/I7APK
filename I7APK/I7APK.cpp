@@ -68,6 +68,7 @@ struct TypeTraits<WeakType> {
 	static Attack2 attack() { return 10_attack; };
 	static const int hp_c = 50;
 	static const int attack_c = 5;
+	typedef WeakType type;
 };
 
 template<>
@@ -76,6 +77,7 @@ struct TypeTraits<StrongType> {
 	static Attack2 attack() { return 5_attack; };
 	static const int hp_c = 100;
 	static const int attack_c = 13;
+	typedef StrongType type;
 };
 
 template<>
@@ -84,6 +86,7 @@ struct TypeTraits<NoType> {
 	static Attack2 attack() { return 5_attack; };
 	static const int hp_c = 100;
 	static const int attack_c = 13;
+	typedef NoType type;
 };
 
 
@@ -151,8 +154,12 @@ public:
 
 
 
-template<typename TType>
+template<typename TType, size_t PokedexIndex = 0>
 class TypePokemon : public Pokemon {
+	BOOST_STATIC_ASSERT(
+		boost::is_same<TType, WeakType>::value ||
+		boost::is_same<TType, StrongType>::value ||
+		boost::is_same<TType, NoType>::value);
 public:
 	TypePokemon() : TypePokemon(0, "")
 	{};
@@ -160,7 +167,10 @@ public:
 	TypePokemon(size_t index, std::string navn) : Pokemon(index, navn, TypeTraits<TType>::hp(), TypeTraits<TType>::attack())
 	{};
 
+	static const size_t pokedexIndex_c = PokedexIndex;
+
 	typedef TypeTraits<TType> type_traits;
+	typedef typename TypeTraits<TType>::type type;
 };
 
 using WeakPokemon = TypePokemon<WeakType>;
@@ -422,6 +432,47 @@ void ComparePokemonToAllOthers(Pokemons& challenger, std::list<Pokemons>& pokemo
 	}
 }
 
+/// TypeList area
+struct NullNodeType {};
+
+template<typename L, typename R>
+struct TypeList
+{
+	typedef L First;
+	typedef R Rest;
+};
+
+template<typename TypeList, unsigned index>
+struct AtIndex : AtIndex<typename TypeList::Rest, index - 1> {
+};
+
+template<typename TypeList>
+struct AtIndex<TypeList, 0> {
+	using type = typename TypeList::First;
+};
+
+std::string removeStructFromTypeName(std::string fullTypeName) {
+	return fullTypeName.substr(7, fullTypeName.length() - 1);
+}
+
+void printIndexAndName(size_t index, std::string name) {
+	std::cout << "#" << index << " " + name << std::endl;
+}
+
+template<typename TypeList>
+struct printImpl {
+	inline static const std::string Print = printImpl<typename TypeList::Rest>::Print + removeStructFromTypeName(typeid(typename TypeList::First).name())
+		+ std::string(", ");
+};
+
+template<>
+struct printImpl<NullNodeType> {
+	inline static const std::string Print = std::string();
+};
+
+template<typename TypeList>
+inline static const std::string Print = printImpl<TypeList>::Print;
+
 
 class Pokedex {
 public:
@@ -488,6 +539,48 @@ public:
 		Pokemons challenger = Dragonite;
 		ComparePokemonToAllOthers(challenger, _pokemons);
 	}
+
+	void pokemonTypeTutorial() {
+		std::cout << "\nOh hello my grandson! what was your name again?" << std::endl;
+		std::cout << "Nevermind. Today I will teach you about the types of the first 6 pokedex entries of this region." << std::endl;
+
+		std::cout << "Our pokedex currently contains:" << std::endl;
+
+		TypePokemon<WeakType, 1> bulbasaur(1, "Bulbasaur");
+		printIndexAndName(bulbasaur.pokedexIndex_c, bulbasaur._navn);
+
+		TypePokemon<WeakType, 2> ivysaur(2, "Ivysaur");
+		printIndexAndName(ivysaur.pokedexIndex_c, ivysaur._navn);
+
+		TypePokemon<WeakType, 3> venusaur(3, "Venusaur");
+		printIndexAndName(venusaur.pokedexIndex_c, venusaur._navn);
+
+		TypePokemon<StrongType, 4> charmander(4, "Charmander");
+		printIndexAndName(charmander.pokedexIndex_c, charmander._navn);
+
+		TypePokemon<WeakType, 5>  charmeleon(5, "Charmeleon");
+		printIndexAndName(charmeleon.pokedexIndex_c, charmeleon._navn);
+
+		TypePokemon<StrongType, 6> charizard(6, "Charizard");
+		printIndexAndName(charizard.pokedexIndex_c, charizard._navn);
+
+#define TYPELIST6(T1, T2, T3, T4, T5, T6) TypeList<T6, TypeList<T5, TypeList<T4, TypeList<T3, TypeList<T2, TypeList<T1, NullNodeType>>>>>>
+		typedef TYPELIST6(
+			decltype(bulbasaur)::type,
+			decltype(ivysaur)::type,
+			decltype(venusaur)::type,
+			decltype(charmander)::type,
+			decltype(charmeleon)::type,
+			decltype(charizard)::type) PokemonTypeList;
+
+		std::cout << "Lets examine the type of " << charmeleon._navn << " at pokedex entry #" << charmeleon._pokeIndex << std::endl;
+
+		std::string charmeleonType = typeid(AtIndex<PokemonTypeList, decltype(charmeleon)::pokedexIndex_c>::type).name();
+		std::cout << charmeleon._navn + " has type " << removeStructFromTypeName(charmeleonType);
+
+		std::cout << "\n\nThe types of all the six are:" << std::endl;
+		std::cout << Print<PokemonTypeList> << std::endl;
+	}
 };
 
 
@@ -506,7 +599,7 @@ int main()
 	//Requeries that the interface changes to something like TypePokemon<T1> from Pokemon
 	auto fn = [](auto&& arg1, auto&& arg2) { return Fight3(arg1, arg2); };
 	pokemonFightCalculator.connect(fn);
-	pokemonFightCalculator.connect(std::bind(fn, _2, _1));
+	pokemonFightCalculator.connect(std::bind(fn, std::placeholders::_2, std::placeholders::_1));
 	
 	Pokedex pokedex{};
 	while (continueProgram) {
@@ -517,6 +610,7 @@ int main()
 		std::cout << "Press 4 for starting random fights every few seconds." << std::endl;
 		std::cout << "Press 5 for one predestined fight." << std::endl;
 		std::cout << "Press 6 for WeakType to all other types" << std::endl;
+		std::cout << "Press 7 for a small tutorial on some of the pokemon types" << std::endl;
 		std::cout << "Press q for exiting" << std::endl;
 
 		std::cout << "Dit valg: ";
@@ -540,6 +634,9 @@ int main()
 				break;
 			case '6':
 				pokedex.comparePokemontypes();
+				break;
+			case '7':
+				pokedex.pokemonTypeTutorial();
 				break;
 			case 'q':
 				continueProgram = false;
