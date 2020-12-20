@@ -1,9 +1,7 @@
 #pragma once
-#include  <variant>
+
 #include "TypePokemon.h"
 #include <iostream>
-
-
 #include <list>
 #include <iterator>
 #include <thread>
@@ -12,14 +10,18 @@
 #include "boost/signals2.hpp"
 #include "CompilePokemon.h"
 #include "TypeTraits.h"
+#include  <variant>
 #include "Pokemon.h"
 
 struct PokemonVariant : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
 {
-	//PokemonVariant() = default;
+	PokemonVariant() = default;
 
 	template<typename T>
-	PokemonVariant(const T& x);
+	PokemonVariant(const T& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
+	{
+		
+	};
 
 	std::string name();
 
