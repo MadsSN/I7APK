@@ -112,6 +112,25 @@ public:
 
 
 template<typename TType, size_t PokedexIndex = 0>
+class CompilePokemon {
+	BOOST_STATIC_ASSERT(
+		boost::is_same<TType, WeakType>::value ||
+		boost::is_same<TType, StrongType>::value ||
+		boost::is_same<TType, NoType>::value);
+public:
+	CompilePokemon(std::string pokemonName) : name(pokemonName) {}
+
+	std::string name;
+
+	static const size_t pokedexIndex = PokedexIndex;
+
+	typedef TypeTraits<TType> type_traits;
+	typedef typename TypeTraits<TType>::type type;
+};
+
+
+
+template<typename TType, size_t PokedexIndex = 0>
 class TypePokemon : public Pokemon {
 	BOOST_STATIC_ASSERT(
 		boost::is_same<TType, WeakType>::value ||
@@ -130,11 +149,22 @@ public:
 	typedef typename TypeTraits<TType>::type type;
 };
 
+// need something like this, and then change Pokemons -> CompilePokemons using methods
+template<size_t index>
+using WeakCompilePokemon = TypePokemon<WeakType, index>;
+template<size_t index>
+using StrongCompilePokemon = TypePokemon<StrongType, index>;
+template<size_t index>
+using NoCompilePokemon = TypePokemon<NoType, index>;
+template<size_t index>
+using CompilePokemons = std::variant<WeakCompilePokemon<index>, StrongCompilePokemon<index>, NoCompilePokemon<index>>;
+
 
 using WeakPokemon = TypePokemon<WeakType>;
 using StrongPokemon = TypePokemon<StrongType>;
 using NoPokemon = TypePokemon<NoType>;
 using Pokemons = std::variant<WeakPokemon, StrongPokemon, NoPokemon>;
+
 
 
 std::ostream& operator<<(std::ostream& out, const Pokemon& c)
@@ -174,7 +204,6 @@ struct PokeGetBase
 		return arg;
 	}
 };
-
 
 
 std::ostream& operator<<(std::ostream& out, const Pokemons& c)
@@ -297,7 +326,7 @@ template<typename P1, typename P2>
 void Fight(const P1& p1, const P2& p2) {
 	std::cout << "BATTLE MUSIC" << std::endl;
 
-	Fight<P1::type_traits::attack_c, P1::type_traits::hp_c, P2::type_traits::attack_c, P2::type_traits::hp_c>(p1._navn, p2._navn);
+	Fight<P1::type_traits::attack_c, P1::type_traits::hp_c, P2::type_traits::attack_c, P2::type_traits::hp_c>(p1.name, p2.name);
 };
 
 template<typename P1, typename P2>
@@ -402,20 +431,6 @@ void ComparePokemonToAllOthers(Pokemons& challenger, std::list<Pokemons>& pokemo
 	}
 }
 
-/// TypeList area
-struct NullNodeType {};
-
-template<typename L, typename R>
-struct TypeList
-{
-	typedef L First;
-	typedef R Rest;
-};
-
-template<typename TypeList, unsigned index>
-struct AtIndex : AtIndex<typename TypeList::Rest, index - 1> {
-};
-
 void asyncThreadBattle(std::mutex& m, std::condition_variable& c, Pokemons& p, int& lastAttack)
 {
 	Pokemon pb = std::visit(PokeGetBase(), p);
@@ -447,6 +462,20 @@ void asyncThreadBattle(std::mutex& m, std::condition_variable& c, Pokemons& p, i
 		}
 	}
 }
+
+/// TypeList area
+struct NullNodeType {};
+
+template<typename L, typename R>
+struct TypeList
+{
+	typedef L First;
+	typedef R Rest;
+};
+
+template<typename TypeList, unsigned index>
+struct AtIndex : AtIndex<typename TypeList::Rest, index - 1> {
+};
 
 template<typename TypeList>
 struct AtIndex<TypeList, 0> {
@@ -527,11 +556,11 @@ public:
 	}
 
 	void predestinedBattle() {
-		WeakPokemon Raticate(20, "Raticate");
-		StrongPokemon Dragonite(149, "Dragonite");
+		CompilePokemon<WeakType, 20> Raticate("Raticate");
+		CompilePokemon<StrongType, 149> Dragonite("Dragonite");
 
-		Fight3(Raticate, Dragonite);
-		Fight3(Dragonite, Raticate);
+		Fight(Raticate, Dragonite);
+		Fight(Dragonite, Raticate);
 	}
 
 	void comparePokemontypes() {
@@ -548,23 +577,23 @@ public:
 
 		std::cout << "Our pokedex currently contains:" << std::endl;
 
-		TypePokemon<WeakType, 1> bulbasaur(1, "Bulbasaur");
-		printIndexAndName(bulbasaur.pokedexIndex_c, bulbasaur._navn);
+		CompilePokemon<WeakType, 1> bulbasaur("Bulbasaur");
+		printIndexAndName(bulbasaur.pokedexIndex, bulbasaur.name);
+		
+		CompilePokemon<WeakType, 2> ivysaur("Ivysaur");
+		printIndexAndName(ivysaur.pokedexIndex, ivysaur.name);
 
-		TypePokemon<WeakType, 2> ivysaur(2, "Ivysaur");
-		printIndexAndName(ivysaur.pokedexIndex_c, ivysaur._navn);
+		CompilePokemon<WeakType, 3> venusaur("Venusaur");
+		printIndexAndName(venusaur.pokedexIndex, venusaur.name);
 
-		TypePokemon<WeakType, 3> venusaur(3, "Venusaur");
-		printIndexAndName(venusaur.pokedexIndex_c, venusaur._navn);
+		CompilePokemon<StrongType, 4> charmander("Charmander");
+		printIndexAndName(charmander.pokedexIndex, charmander.name);
 
-		TypePokemon<StrongType, 4> charmander(4, "Charmander");
-		printIndexAndName(charmander.pokedexIndex_c, charmander._navn);
+		CompilePokemon<WeakType, 5>  charmeleon("Charmeleon");
+		printIndexAndName(charmeleon.pokedexIndex, charmeleon.name);
 
-		TypePokemon<WeakType, 5>  charmeleon(5, "Charmeleon");
-		printIndexAndName(charmeleon.pokedexIndex_c, charmeleon._navn);
-
-		TypePokemon<StrongType, 6> charizard(6, "Charizard");
-		printIndexAndName(charizard.pokedexIndex_c, charizard._navn);
+		CompilePokemon<StrongType, 6> charizard("Charizard");
+		printIndexAndName(charizard.pokedexIndex, charizard.name);
 
 #define TYPELIST6(T1, T2, T3, T4, T5, T6) TypeList<T6, TypeList<T5, TypeList<T4, TypeList<T3, TypeList<T2, TypeList<T1, NullNodeType>>>>>>
 		typedef TYPELIST6(
@@ -575,10 +604,10 @@ public:
 			decltype(charmeleon)::type,
 			decltype(charizard)::type) PokemonTypeList;
 
-		std::cout << "Lets examine the type of " << charmeleon._navn << " at pokedex entry #" << charmeleon._pokeIndex << std::endl;
+		std::cout << "Lets examine the type of " << charmeleon.name << " at pokedex entry #" << charmeleon.pokedexIndex<< std::endl;
 
-		std::string charmeleonType = typeid(AtIndex<PokemonTypeList, decltype(charmeleon)::pokedexIndex_c>::type).name();
-		std::cout << charmeleon._navn + " has type " << removeStructFromTypeName(charmeleonType);
+		std::string charmeleonType = typeid(AtIndex<PokemonTypeList, decltype(charmeleon)::pokedexIndex>::type).name();
+		std::cout << charmeleon.name + " has type " << removeStructFromTypeName(charmeleonType);
 
 		std::cout << "\n\nThe types of all the six are:" << std::endl;
 		std::cout << Print<PokemonTypeList> << std::endl;
