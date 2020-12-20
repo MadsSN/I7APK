@@ -1,16 +1,12 @@
-// I7APK.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
-#include <iostream>
-#include <list>
-#include <iterator>
-#include <variant>
-#include <thread>
 #include <algorithm>
+#include <iostream>
+#include <iterator>
+#include <list>
 #include <mutex>
+#include <thread>
+#include <variant>
 #include "boost/signals2.hpp"
-
-
+#include "pokemonVariant.h"
 
 template <typename T>
 class TypeTraits;
@@ -49,17 +45,23 @@ struct TypeTraits<NoType> {
 	typedef NoType type;
 };
 
+class PrintPokemonNameFunctor {
+public:
+	void operator() (std::string name) const {
+		std::cout << name << std::endl;
+	}
+};
 
 class Pokemon {
 public:
-	Pokemon(size_t index, std::string navn, size_t hp, size_t attack) : _pokeIndex(index),
+	Pokemon(size_t index, std::string navn, size_t hp, size_t attack) :
+		_pokeIndex(index),
 		_navn(navn),
 		_hp(hp),
 		_attack(attack) {
 		std::cout << "Ordinary ctor " << _navn << "\n";
 	}
-	typedef TypeTraits<NoType> type_traits;
-	
+
 	size_t _hp;
 	size_t _attack;
 	size_t _pokeIndex;
@@ -72,7 +74,7 @@ public:
 
 	Pokemon(const Pokemon& poke) : Pokemon(poke._pokeIndex, poke._navn, poke._hp, poke._attack)
 	{
-		std::cout << "Copy ctor " << _navn  << "\n";
+		std::cout << "Copy ctor " << _navn << "\n";
 	}
 
 	Pokemon(Pokemon&& poke) noexcept :
@@ -93,7 +95,7 @@ public:
 
 	Pokemon& operator=(Pokemon&& poke) noexcept
 	{
-		if(this != &poke)
+		if (this != &poke)
 		{
 			swap(*this, poke);
 		}
@@ -110,33 +112,6 @@ public:
 	}
 };
 
-
-template<typename TType, size_t PokedexIndex = 0>
-class TypePokemon : public Pokemon {
-	BOOST_STATIC_ASSERT(
-		boost::is_same<TType, WeakType>::value ||
-		boost::is_same<TType, StrongType>::value ||
-		boost::is_same<TType, NoType>::value);
-public:
-	TypePokemon() : TypePokemon(0, "")
-	{};
-	
-	TypePokemon(size_t index, std::string navn) : Pokemon(index, navn, TypeTraits<TType>::hp_c, TypeTraits<TType>::attack_c)
-	{};
-
-	static const size_t pokedexIndex_c = PokedexIndex;
-
-	typedef TypeTraits<TType> type_traits;
-	typedef typename TypeTraits<TType>::type type;
-};
-
-
-using WeakPokemon = TypePokemon<WeakType>;
-using StrongPokemon = TypePokemon<StrongType>;
-using NoPokemon = TypePokemon<NoType>;
-using Pokemons = std::variant<WeakPokemon, StrongPokemon, NoPokemon>;
-
-
 std::ostream& operator<<(std::ostream& out, const Pokemon& c)
 {
 	out << "Index: " << c._pokeIndex << std::endl;
@@ -146,24 +121,31 @@ std::ostream& operator<<(std::ostream& out, const Pokemon& c)
 	return out;
 }
 
-struct PokeVisitor
-{
-	template<typename T>
-	void operator()(const T& arg)
-	{
-		std::cout << arg;
-	}
+struct PokemonVariant;
+
+template<typename TType>
+class TypePokemon : public Pokemon {
+	BOOST_STATIC_ASSERT(
+		boost::is_same<TType, WeakType>::value ||
+		boost::is_same<TType, StrongType>::value ||
+		boost::is_same<TType, NoType>::value);
+public:
+	TypePokemon() : TypePokemon(0, "")
+	{};
+
+	TypePokemon(size_t index, std::string navn) : Pokemon(index, navn, TypeTraits<TType>::hp_c, TypeTraits<TType>::attack_c)
+	{};
+
+	//static const size_t pokedexIndex_c = PokedexIndex;
+
+	typedef TypeTraits<TType> type_traits;
+	typedef typename TypeTraits<TType>::type type;
 };
 
 
-struct PokeVisitorGetName
-{
-	template<typename T>
-	std::string operator()(const T& arg)
-	{
-		return arg._navn;
-	}
-};
+using WeakPokemon = TypePokemon<WeakType>;
+using StrongPokemon = TypePokemon<StrongType>;
+using NoPokemon = TypePokemon<NoType>;
 
 
 struct PokeGetBase
@@ -175,20 +157,52 @@ struct PokeGetBase
 	}
 };
 
-
-
-std::ostream& operator<<(std::ostream& out, const Pokemons& c)
+struct PokeVisitor
 {
-	out << c;
-	return out;
-}
-
-class PrintPokemonNameFunctor {
-public: 
-	void operator() (std::string name) const {
-		std::cout << name << std::endl;
+	template<typename T>
+	void operator()(const T& arg)
+	{
+		std::cout << arg;
 	}
 };
+
+struct PokeBattleVisitor
+{
+	template<typename P1, typename P2>
+	PokemonVariant operator()(const P1& arg, const P2& challenger);
+};
+
+PokemonVariant Fight3(PokemonVariant p1, PokemonVariant p2);
+
+struct PokemonVariant : public std::variant<WeakPokemon, StrongPokemon, NoPokemon>
+{
+	PokemonVariant() = default;
+
+	template<typename T>
+	PokemonVariant(const T& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x) {}
+
+	Pokemon get()
+	{
+		return std::visit(PokeGetBase(), *this);
+	}
+
+	Pokemon print()
+	{
+		std::visit(PokeVisitor(), *this);
+	}
+
+	Pokemon fight(PokemonVariant challenger)
+	{
+		std::visit(PokeBattleVisitor(), *this, challenger);
+	}
+};
+
+
+template <typename P1, typename P2>
+PokemonVariant PokeBattleVisitor::operator()(const P1& arg, const P2& challenger)
+{
+	return Fight3(challenger, arg);
+}
 
 class PokemonWinner
 {
@@ -198,10 +212,10 @@ public:
 		_winnerRate = 0;
 	}
 	
-	PokemonWinner(Pokemons pokemon, int winnerRate) : _pokemon(pokemon), _winnerRate(winnerRate)
+	PokemonWinner(PokemonVariant pokemon, int winnerRate) : _pokemon(pokemon), _winnerRate(winnerRate)
 	{
 	}
-	Pokemons _pokemon;
+	PokemonVariant _pokemon;
 	int _winnerRate;
 };
 
@@ -214,8 +228,8 @@ struct percentage
 		InputIterator last) const
 	{
 		//if (first == last) return result_type();
-		Pokemons p1 = *first++;
-		Pokemons p2 = p1;
+		PokemonVariant p1 = *first++;
+		PokemonVariant p2 = p1;
 		int results = 1;
 		int p1Win = 1;
 		for (; first != last; ++first) {
@@ -242,7 +256,7 @@ struct percentage
 class PokemonFightCalculator
 {
 public:
-	typedef boost::signals2::signal<Pokemons(Pokemons, Pokemons), percentage> PokeSignal;
+	typedef boost::signals2::signal<PokemonVariant(PokemonVariant, PokemonVariant), percentage> PokeSignal;
 	PokeSignal sig;
 
 	void connect(const PokeSignal::slot_function_type& slot )
@@ -250,26 +264,14 @@ public:
 		sig.connect(slot);
 	}
 	
-	void fight(Pokemons p1, Pokemons p2) const
+	void fight(PokemonVariant p1, PokemonVariant p2) const
 	{
 		PokeSignal::result_type pokemon = sig(p1,p2);
-		std::cout << "Winner between: " << std::visit(PokeVisitorGetName(), p1) << " and "
-			<< std::visit(PokeVisitorGetName(), p2) << " is: "
-		<< std::visit(PokeVisitorGetName(), pokemon._pokemon) << " with ratio of " << pokemon._winnerRate << std::endl;
+		std::cout << "Winner between: " << p1.get()._navn << " and "
+			<< p1.get()._navn << " is: "
+		<< p1.get()._navn << " with ratio of " << pokemon._winnerRate << std::endl;
 	}
 };
-
-
-class FightFirstWins
-{
-public:
-
-	Pokemons operator()(const Pokemons& p1, const Pokemons& p2) const
-	{
-		return p1;
-	}
-};
-
 
 
 
@@ -306,8 +308,7 @@ struct is_first_winner
 	inline static constexpr bool value = P1::type_traits::hp_c / P2::type_traits::attack_c > P2::type_traits::hp_c / P1::type_traits::attack_c;
 };
 
-struct FirstWinTag {};
-struct SecondWinTag {};
+
 
 /*Taken from slides*/
 template < typename Ttrue, typename Tfalse, bool>
@@ -324,24 +325,21 @@ struct IfThenElse < Ttrue, Tfalse, true>
 {
 	typedef Ttrue Type;
 };
+/*End of taken from slides*/
+
+struct FirstWinTag {};
+struct SecondWinTag {};
 
 template<typename P1, typename P2>
-Pokemons Fight3(P1& p1, P2& p2)
+PokemonVariant Fight3(P1& p1, P2& p2)
 {
 	return Fight3Impl(p1, p2,
 		typename IfThenElse<FirstWinTag, SecondWinTag, is_first_winner<P1, P2>::value>::Type());
 }
 
-struct PokeBattleVisitor
-{
-	template<typename P1, typename P2>
-	Pokemons operator()(const P1& arg, const P2& challenger)
-	{
-		return Fight3(challenger, arg);
-	}
-};
 
-Pokemons Fight3(Pokemons p1, Pokemons p2)
+
+PokemonVariant Fight3(PokemonVariant p1, PokemonVariant p2)
 {
 	return std::visit(PokeBattleVisitor(), p1, p2);
 }
@@ -391,9 +389,9 @@ void ComparePokemonToAllOthers(C c, Ps... ps)
 
 //By recursive
 //Leveraging visitor pattern..Do not need to know what self is. 
-void ComparePokemonToAllOthers(Pokemons& challenger, std::list<Pokemons>& pokemons)
+void ComparePokemonToAllOthers(PokemonVariant& challenger, std::list<PokemonVariant>& pokemons)
 {
-	for (std::list<Pokemons>::const_iterator pokeIter = pokemons.begin(); pokeIter != pokemons.end(); ++pokeIter)
+	for (std::list<PokemonVariant>::const_iterator pokeIter = pokemons.begin(); pokeIter != pokemons.end(); ++pokeIter)
 	{
 		std::visit([](auto&& arg, auto&& arg2)
 		{
@@ -416,7 +414,7 @@ template<typename TypeList, unsigned index>
 struct AtIndex : AtIndex<typename TypeList::Rest, index - 1> {
 };
 
-void asyncThreadBattle(std::mutex& m, std::condition_variable& c, Pokemons& p, int& lastAttack)
+void asyncThreadBattle(std::mutex& m, std::condition_variable& c, PokemonVariant& p, int& lastAttack)
 {
 	Pokemon pb = std::visit(PokeGetBase(), p);
 	std::unique_lock<std::mutex> ul(m);
@@ -433,8 +431,8 @@ void asyncThreadBattle(std::mutex& m, std::condition_variable& c, Pokemons& p, i
 			std::cout << pb._navn << " won" << std::endl;
 			return;
 		}
-		//Bussiness logic
-		pb._hp = (pb._hp - lastAttack) < 0 ? 0 : (pb._hp - lastAttack);
+		//Bussiness logic  - Avoid rollover
+		pb._hp = (static_cast<int>(pb._hp) - lastAttack) < 0 ? 0 : (pb._hp - lastAttack);
 		std::cout << pb._navn << " has " << pb._hp << " after being attacked by " << lastAttack << std::endl;
 
 		//Lose and exit condition
@@ -478,7 +476,7 @@ inline static const std::string Print = printImpl<TypeList>::Print;
 
 class Pokedex {
 public:
-	std::list<Pokemons> _pokemons;
+	std::list<PokemonVariant> _pokemons;
 	Pokedex()
 	{
 		_pokemons.emplace_back(WeakPokemon(1, "Bulbasaur"));
@@ -490,7 +488,7 @@ public:
 	}
 
 	//Delegating constructor
-	Pokedex(std::list<Pokemons> pokemons) : _pokemons(pokemons) {}
+	Pokedex(std::list<PokemonVariant> pokemons) : _pokemons(pokemons) {}
 
 	void printAllRangeBased() {
 		for (const auto& pokemon : _pokemons) {
@@ -499,9 +497,9 @@ public:
 	}
 
 	void printAllIterator() {
-		for (std::list<Pokemons>::const_iterator pokeIter = _pokemons.begin(); pokeIter != _pokemons.end(); ++pokeIter)
+		for (std::list<PokemonVariant>::const_iterator pokeIter = _pokemons.begin(); pokeIter != _pokemons.end(); ++pokeIter)
 		{
-			std::visit(PokeVisitor(), *pokeIter);
+			std::visit([](auto& arg) { std::cout << arg; }, * pokeIter);
 		}
 	}
 
@@ -512,7 +510,7 @@ public:
 		std::transform(_pokemons.begin(),
 			_pokemons.end(),
 			std::back_inserter(nameOfPokemon),
-			[](Pokemons pokemon) {return std::visit(PokeVisitorGetName(), pokemon); }
+			[](PokemonVariant pokemon) {return pokemon.get()._navn; }
 		);
 
 		nameOfPokemon.sort();
@@ -538,10 +536,11 @@ public:
 		WeakPokemon Raticate(20, "Raticate");
 		StrongPokemon Dragonite(149, "Dragonite");
 		NoPokemon Søren(899, "Soeren");
-		Pokemons challenger = Dragonite;
+		PokemonVariant challenger = Raticate;
 		ComparePokemonToAllOthers(challenger, _pokemons);
 	}
 
+	/*
 	void pokemonTypeTutorial() {
 		std::cout << "\nOh hello my grandson! what was your name again?" << std::endl;
 		std::cout << "Nevermind. Today I will teach you about the types of the first 6 pokedex entries of this region." << std::endl;
@@ -583,7 +582,7 @@ public:
 		std::cout << "\n\nThe types of all the six are:" << std::endl;
 		std::cout << Print<PokemonTypeList> << std::endl;
 	}
-
+	*/
 
 	
 	void asyncTurnBattle()
@@ -612,7 +611,7 @@ int main()
 	PokemonFightCalculator pokemonFightCalculator{};
 	
 	
-	//std::function<Pokemons (Pokemons, Pokemons)> fn = &Fight3;
+	//std::function<PokemonVariant (PokemonVariant, PokemonVariant)> fn = &Fight3;
 	//Try to find a way to adopt pokemon fight calculator with fight 3 system..
 	//Requeries that the interface changes to something like TypePokemon<T1> from Pokemon
 	auto fn = [](auto&& arg1, auto&& arg2) { return Fight3(arg1, arg2); };
@@ -655,7 +654,7 @@ int main()
 				pokedex.comparePokemontypes();
 				break;
 			case '7':
-				pokedex.pokemonTypeTutorial();
+				//pokedex.pokemonTypeTutorial();
 				break;
 			case '8':
 				pokedex.asyncTurnBattle();
