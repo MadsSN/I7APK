@@ -2,24 +2,11 @@
 //
 
 #include <iostream>
-#include <list>
-#include <iterator>
 #include <variant>
-#include <thread>
-#include <algorithm>
-#include <mutex>
 #include "boost/signals2.hpp"
-#include "IfThenElse.h"
-#include "CompilePokemon.h"
-#include "TypeTraits.h"
 #include "Pokemon.h"
-#include "TypePokemon.h"
-#include "PokemonVariant.h"
 #include "PokemonFightCalculator.h"
-#include "FightRecursivePokemon.h"
 #include "FightPokemon.h"
-#include "FightPokemonAsync.h"
-#include "TypeList.h"
 #include "Pokedex.h"
 
 int main()

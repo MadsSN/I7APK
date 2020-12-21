@@ -8,15 +8,15 @@ struct NoType {};
 
 template<>
 struct TypeTraits<WeakType> {
-	static const int hp_c = 50;
-	static const int attack_c = 5;
+	static const int hp_c = 51;
+	static const int attack_c = 10;
 	typedef WeakType type;
 };
 
 template<>
 struct TypeTraits<StrongType> {
-	static const int hp_c = 100;
-	static const int attack_c = 13;
+	static const int hp_c = 50;
+	static const int attack_c = 5;
 	typedef StrongType type;
 };
 

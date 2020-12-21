@@ -1,5 +1,5 @@
-#include "TypeTraits.h"
 #pragma once
+#include "TypeTraits.h"
 template<typename TType, size_t PokedexIndex = 0>
 class CompilePokemon {
 	BOOST_STATIC_ASSERT(

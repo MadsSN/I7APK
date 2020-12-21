@@ -1,6 +1,6 @@
 #pragma once
 #include "PokemonVariant.h"
-
+#include "IfThenElse.h"
 struct FirstWinTag {};
 struct SecondWinTag {};
 
@@ -41,12 +41,12 @@ const PokemonVariant FightWithConstexpr(P1& p1, P2& p2) {
 	if constexpr (is_first_winner<P1, P2>::value) {
 		std::cout << p1._navn << " won!" << std::endl;
 		std::cout << "and " << p2._navn << " died for your entertainment" << std::endl;
-		return p1;
+		return std::move(p1);
 	}
 	else {
 		std::cout << p1._navn << " died for your entertainment" << std::endl;
 		std::cout << "and " << p2._navn << " won!" << std::endl;
-		return p2;
+		return std::move(p2);
 	}
 };
 
@@ -55,6 +55,7 @@ struct PokeBattleVisitor
 	template<typename P1, typename P2>
 	PokemonVariant operator()(const P1& arg, const P2& challenger)
 	{
+		std::cout << "Pre battle step" << std::endl;
 		return FightWithConstexpr(challenger, arg);
 	}
 };

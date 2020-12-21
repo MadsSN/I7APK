@@ -60,22 +60,21 @@ public:
 	void printSortedByName() {
 
 		std::list<std::string> nameOfPokemon{};
-
 		std::transform(_pokemons.begin(),
 			_pokemons.end(),
 			std::back_inserter(nameOfPokemon),
-			[](PokemonVariant pokemon) {return pokemon.name(); }
+			[](const PokemonVariant& pokemon) {return pokemon.name(); }
 		);
-
 		nameOfPokemon.sort();
-
 		std::for_each(nameOfPokemon.begin(), nameOfPokemon.end(), PrintPokemonNameFunctor());
 
 	}
 
 	void randomPokemonFights(PokemonFightCalculator& pokemonFightCalculator)
 	{
+		std::cout << "First step" << std::endl;
 		pokemonFightCalculator.fight(_pokemons.front(), _pokemons.back());
+		std::cout << "Last  step" << std::endl;
 	}
 
 	void predestinedBattle() {

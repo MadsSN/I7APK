@@ -33,19 +33,19 @@ struct PokemonVariant : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
 		
 	};
 
-	std::string name() {
+	std::string name() const {
 		return get()._navn;
 	}
 
-	size_t hp() {
+	size_t hp() const {
 		return get()._hp;
 	}
 
-	size_t attack() {
+	size_t attack() const {
 		return get()._attack;
 	}
 
-	size_t pokeIndex() {
+	size_t pokeIndex() const {
 		return get()._pokeIndex;
 	}
 
