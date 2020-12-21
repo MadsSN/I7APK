@@ -1,11 +1,10 @@
 #include <iostream>
 #include "Pokemon.h"
 
-Pokemon::Pokemon(size_t index, std::string navn, size_t hp, size_t attack, std::pmr::polymorphic_allocator<std::byte> alloc) : _pokeIndex(index),
+Pokemon::Pokemon(size_t index, std::string navn, size_t hp, size_t attack) : _pokeIndex(index),
 	_navn(navn),
 	_hp(hp),
-	_attack(attack),
-	_alloc(alloc) {
+	_attack(attack){
 	std::cout << "Ordinary ctor " << _navn << "\n";
 }
 
@@ -17,11 +16,6 @@ bool Pokemon::operator==(const Pokemon poke)
 Pokemon::Pokemon(const Pokemon& poke) : Pokemon(poke._pokeIndex, poke._navn, poke._hp, poke._attack)
 {
 	std::cout << "Copy ctor " << _navn << "\n";
-}
-
-Pokemon::Pokemon(const Pokemon& poke, std::pmr::polymorphic_allocator<std::byte> alloc) : Pokemon(poke._pokeIndex, poke._navn, poke._hp, poke._attack, alloc)
-{
-	
 }
 
 Pokemon::Pokemon(Pokemon&& poke) noexcept :
@@ -57,8 +51,6 @@ void Pokemon::swap(Pokemon& left, Pokemon& rigth) const noexcept
 	std::swap(left._attack, rigth._attack);
 	std::swap(left._hp, rigth._hp);
 }
-
-std::pmr::polymorphic_allocator<std::byte> Pokemon::get_allocator() { return _alloc; }
 
 std::ostream& operator<<(std::ostream& out, const Pokemon& c)
 {

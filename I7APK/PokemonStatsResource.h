@@ -1,18 +1,21 @@
 #pragma once
 #include <iostream>
 #include <memory_resource>
+#include "Pokemon.h"
 
 // based on implementation from class slides
 class PokemonStatsResource : public std::pmr::memory_resource {
 public:
-	// is this name okay, example have them with different names
 	PokemonStatsResource(std::pmr::memory_resource* parent = std::pmr::get_default_resource()) : parent_(parent) {}
 
 	void printStats() {
-		std::cout << "Currently allocated bytes: " << bytesAllocated_ << std::endl
-			<< "High watermark of allocated bytes: " << highWatermarkBytesAllocated_ << std::endl;
-			/*<< "Currently allocated pokemon: " << bytesAllocated_ / sizeof(Pokemon) << std::endl
-			<< "High watermark of allocated pokemon: " << highWatermarkBytesAllocated_ / sizeof(Pokemon) << std::endl;*/
+		std::cout << "\n~~ PokeDex allocated pokemon data ~~" << std::endl
+			<< "Currently allocated Pokemon bytes: " << bytesAllocated_ << std::endl
+			<< "High watermark of allocated Pokemon bytes: " << highWatermarkBytesAllocated_ << std::endl;
+		/*
+			<< "Currently allocated pokemon: " << (int)(bytesAllocated_ / sizeof(Pokemon))-1 << std::endl
+			<< "High watermark of allocated pokemon: " << (int)(highWatermarkBytesAllocated_ / sizeof(Pokemon))-1 << std::endl;
+		*/
 	}
 
 private:

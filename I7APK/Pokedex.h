@@ -36,12 +36,20 @@ void ComparePokemonToAllOthers(PokemonVariant& challenger, std::list<PokemonVari
 
 namespace pokepmr {
 	template<typename T>
-	using list = std::list<T, std::pmr::polymorphic_allocator<T>>;// _pokemonsPMR;
+	using list = std::list<T, std::pmr::polymorphic_allocator<T>>;
 }
 
 class Pokedex {
 public:
 	std::list<PokemonVariant> _pokemons;
+
+	PokemonStatsResource _pokemonStatsResource{};
+	// using PokemonVariant instead of Pokemon messes it up, as the std::varaint mistakes PokemonStatsResource for at Weak/Strong/NoType, 
+	// which it doesn't have the signature for. I'm not sure how to fix this, without changing the list to type List<Pokemon>. But all our
+	// methods are depending on a PokemonVariant, so I'm not sure it's feasible to switch all the methods to use base Pokemon objects instead
+	// of TypePokemon. Especially if some of the methods depend on TypePokemon functionality. For now my solution is to have two list,
+	// where the pokemon is added to each list in createNewPokemon.. 
+	pokepmr::list<Pokemon> _pokemonsPmr{ &_pokemonStatsResource };
 
 	Pokedex()
 	{
@@ -57,25 +65,8 @@ public:
 		} catch(std::exception& e) {
 			std::cout << "Tried creating duplicate pokemon with index 1"  << std::endl;
 		}
-	
-
-//		PokemonStatsResource _pokemonStatsResource;
-
-		std::list<Pokemon> _pokemonsTest;
-		PokemonStatsResource _pokemonStatsResource{};
-		//pokepmr::list<Pokemon> _pokemonPmr{&_pokemonStatsResource};
-		std::list<Pokemon, std::pmr::polymorphic_allocator<Pokemon>> _pokemonsPmr{&_pokemonStatsResource};
-		_pokemonStatsResource.printStats();
-
-		//_pokemonsTest.push_back(Pokemon(11, "11mon", 11, 11, &_pokemonStatsResource));
-		_pokemonsPmr.push_back(Pokemon(11, "11mon", 11, 11));
 
 		_pokemonStatsResource.printStats();
-		
-		//Pokemon p1(11, "11mon", 11, 11, &_pokemonStatsResource);
-		//auto test = p1.get_allocator();
-		//_pokemonStatsResource.printStats();
-		//_pokemonPmr.push_back(Pokemon(11, "11mon", 11, 11));
 	}
 
 	template<typename T, typename... Args>
@@ -90,6 +81,7 @@ public:
 			};
 		}
 		_pokemons.emplace_back(pokemon);
+		_pokemonsPmr.emplace_back(pokemon);
 	}
 
 	void printAllRangeBased() {
@@ -140,7 +132,6 @@ public:
 	void startPokemonTypeTutorial() {
 		pokemonTypeTutorial();
 	}
-
 
 
 	void asyncTurnBattle()
