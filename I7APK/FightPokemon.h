@@ -36,6 +36,19 @@ P2& FightWithTagsImpl(P1& p1, P2& p2, SecondWinTag)
 }
 
 template<typename P1, typename P2>
+void FightWithConstexpr(P1&& p1, P2&& p2) {
+	std::cout << "BATTLE MUSIC" << std::endl;
+	if constexpr (is_first_winner<P1, P2>::value) {
+		std::cout << p1._navn << " won!" << std::endl;
+		std::cout << "and " << p2._navn << " died for your entertainment" << std::endl;
+	}
+	else {
+		std::cout << p1._navn << " died for your entertainment" << std::endl;
+		std::cout << "and " << p2._navn << " won!" << std::endl;
+	}
+};
+
+template<typename P1, typename P2>
 PokemonVariant FightWithConstexpr(P1& p1, P2& p2) {
 	std::cout << "BATTLE MUSIC" << std::endl;
 	if constexpr (is_first_winner<P1, P2>::value) {

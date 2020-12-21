@@ -30,8 +30,10 @@ struct PokemonVariant : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
 	template<typename T>
 	PokemonVariant(const T& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
 	{
-		
+		std::cout << "Poke variant ctor copy" << std::endl;
 	};
+
+
 
 	std::string name() const {
 		return get()._navn;

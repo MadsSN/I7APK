@@ -26,7 +26,7 @@ void ComparePokemonToAllOthers(PokemonVariant& challenger, std::list<PokemonVari
 	{
 		std::visit([](auto&& arg, auto&& arg2)
 			{
-				FightWithConstexpr(arg, arg2);
+				FightWithConstexpr(std::move(arg), std::move(arg2));
 			}, challenger, *pokeIter);
 	}
 }
