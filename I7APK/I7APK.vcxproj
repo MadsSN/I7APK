@@ -155,6 +155,7 @@
     <ClInclude Include="Pokedex.h" />
     <ClInclude Include="Pokemon.h" />
     <ClInclude Include="PokemonFightCalculator.h" />
+    <ClInclude Include="PokemonStatsResource.h" />
     <ClInclude Include="PokemonVariant.h" />
     <ClInclude Include="TypeList.h" />
     <ClInclude Include="TypePokemon.h" />

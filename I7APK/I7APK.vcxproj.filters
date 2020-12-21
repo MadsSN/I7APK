@@ -59,5 +59,8 @@
     <ClInclude Include="Pokedex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PokemonStatsResource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

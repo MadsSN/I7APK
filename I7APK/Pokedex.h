@@ -5,6 +5,7 @@
 #include <thread>
 #include <mutex>
 #include <exception>
+#include <memory_resource>
 #include "PokemonVariant.h"
 #include "PokemonFightCalculator.h"
 #include "CompilePokemon.h"
@@ -12,6 +13,7 @@
 #include "FightPokemon.h"
 #include "TypeList.h"
 #include "FightPokemonAsync.h"
+#include "PokemonStatsResource.h"
 
 class PrintPokemonNameFunctor {
 public:
@@ -32,11 +34,15 @@ void ComparePokemonToAllOthers(PokemonVariant& challenger, std::list<PokemonVari
 	}
 }
 
-
+namespace pokepmr {
+	template<typename T>
+	using list = std::list<T, std::pmr::polymorphic_allocator<T>>;// _pokemonsPMR;
+}
 
 class Pokedex {
 public:
 	std::list<PokemonVariant> _pokemons;
+
 	Pokedex()
 	{
 		createNewPokemon<WeakPokemon>(1, "Bulbasaur");
@@ -51,7 +57,25 @@ public:
 		} catch(std::exception& e) {
 			std::cout << "Tried creating duplicate pokemon with index 1"  << std::endl;
 		}
+	
 
+//		PokemonStatsResource _pokemonStatsResource;
+
+		std::list<Pokemon> _pokemonsTest;
+		PokemonStatsResource _pokemonStatsResource{};
+		//pokepmr::list<Pokemon> _pokemonPmr{&_pokemonStatsResource};
+		std::list<Pokemon, std::pmr::polymorphic_allocator<Pokemon>> _pokemonsPmr{&_pokemonStatsResource};
+		_pokemonStatsResource.printStats();
+
+		//_pokemonsTest.push_back(Pokemon(11, "11mon", 11, 11, &_pokemonStatsResource));
+		_pokemonsPmr.push_back(Pokemon(11, "11mon", 11, 11));
+
+		_pokemonStatsResource.printStats();
+		
+		//Pokemon p1(11, "11mon", 11, 11, &_pokemonStatsResource);
+		//auto test = p1.get_allocator();
+		//_pokemonStatsResource.printStats();
+		//_pokemonPmr.push_back(Pokemon(11, "11mon", 11, 11));
 	}
 
 	template<typename T, typename... Args>
