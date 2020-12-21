@@ -4,6 +4,7 @@
 #include <iterator>
 #include <thread>
 #include <mutex>
+#include <exception>
 #include "PokemonVariant.h"
 #include "PokemonFightCalculator.h"
 #include "CompilePokemon.h"
@@ -31,17 +32,40 @@ void ComparePokemonToAllOthers(PokemonVariant& challenger, std::list<PokemonVari
 	}
 }
 
+
+
 class Pokedex {
 public:
 	std::list<PokemonVariant> _pokemons;
 	Pokedex()
 	{
-		_pokemons.emplace_back(WeakPokemon(1, "Bulbasaur"));
-		_pokemons.emplace_back(WeakPokemon(2, "Ivysaur"));
-		_pokemons.emplace_back(WeakPokemon(3, "Venusaur"));
-		_pokemons.emplace_back(StrongPokemon(4, "Charmander"));
-		_pokemons.emplace_back(StrongPokemon(5, "Charmeleon"));
-		_pokemons.emplace_back(StrongPokemon(6, "Charizard"));
+		createNewPokemon<WeakPokemon>(1, "Bulbasaur");
+		createNewPokemon<WeakPokemon>(2, "Ivysaur");
+		createNewPokemon<WeakPokemon>(3, "Venusaur");
+		createNewPokemon<StrongPokemon>(4, "Charmander");
+		createNewPokemon<StrongPokemon>(5, "Charmeleon");
+		createNewPokemon<StrongPokemon>(6, "Charizard");
+		try
+		{
+			createNewPokemon<WeakPokemon>(1, "Bulbasaur");
+		} catch(std::exception& e) {
+			std::cout << "Tried creating duplicate pokemon with index 1"  << std::endl;
+		}
+
+	}
+
+	template<typename T, typename... Args>
+	void createNewPokemon(Args&&... args)
+	{
+		T pokemon = T(std::forward<Args>(args)...);
+		for (std::list<PokemonVariant>::const_iterator pokeIter = _pokemons.begin(); pokeIter != _pokemons.end(); ++pokeIter)
+		{
+			if(pokemon._pokeIndex == (*pokeIter).pokeIndex())
+			{
+				throw std::exception("Index already used");
+			};
+		}
+		_pokemons.emplace_back(pokemon);
 	}
 
 	void printAllRangeBased() {
