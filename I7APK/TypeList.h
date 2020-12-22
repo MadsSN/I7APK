@@ -30,7 +30,8 @@ void printIndexAndName(size_t index, std::string name) {
 
 template<typename TypeList>
 struct printImpl {
-	inline static const std::string Print = printImpl<typename TypeList::Rest>::Print + removeStructFromTypeName(typeid(typename TypeList::First).name())
+	inline static const std::string Print = printImpl<typename TypeList::Rest>::Print 
+		+ removeStructFromTypeName(typeid(typename TypeList::First).name())
 		+ std::string(", ");
 };
 
@@ -81,5 +82,5 @@ void pokemonTypeTutorial() {
 	std::cout << charmeleon.name + " has type " << removeStructFromTypeName(charmeleonType);
 
 	std::cout << "\n\nThe types of all the six are:" << std::endl;
-	std::cout << Print<PokemonTypeList> << std::endl;
+	std::cout << Print<PokemonTypeList>.substr(0, Print<PokemonTypeList>.length() - 2) << std::endl;
 }

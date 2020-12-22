@@ -119,8 +119,8 @@ public:
 	}
 
 	void predestinedBattle() {
-		CompilePokemon<WeakType, 20> Raticate("Raticate");
-		CompilePokemon<StrongType, 149> Dragonite("Dragonite");
+		WeakPokemon Raticate(20, "Raticate");
+		StrongPokemon Dragonite(149, "Dragonite");
 
 		FightRecursivePokemon(Raticate, Dragonite);
 	}

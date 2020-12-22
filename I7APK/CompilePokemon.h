@@ -11,7 +11,7 @@ public:
 
 	std::string name;
 
-	static const size_t pokedexIndex = PokedexIndex;
+	static const size_t pokedexIndex = PokedexIndex;	
 
 	typedef TypeTraits<TType> type_traits;
 	typedef typename TypeTraits<TType>::type type;
