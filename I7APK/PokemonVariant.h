@@ -27,12 +27,21 @@ struct PokemonVariant : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
 {
 	PokemonVariant() = default;
 
-	template<typename T>
-	PokemonVariant(const T& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
+	
+	PokemonVariant(const WeakPokemon& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
 	{
 		std::cout << "Poke variant ctor copy" << std::endl;
 	};
 
+	PokemonVariant(const StrongPokemon& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
+	{
+		std::cout << "Poke variant ctor copy" << std::endl;
+	};
+
+	PokemonVariant(const NoPokemon& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
+	{
+		std::cout << "Poke variant ctor copy" << std::endl;
+	};
 
 
 	std::string name() const {
