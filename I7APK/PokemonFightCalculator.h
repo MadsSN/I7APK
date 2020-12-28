@@ -1,4 +1,7 @@
 #pragma once
+#include <utility>
+
+
 #include "PokemonVariant.h"
 
 #include "boost/signals2.hpp"
@@ -7,7 +10,7 @@ template<typename T>
 class PercentageWinner
 {
 public:
-	PercentageWinner(const T& pokemon, int winnerRate) : _pokemon(pokemon), _winnerRate(winnerRate)
+	PercentageWinner(T pokemon, int winnerRate) : _pokemon(std::move(pokemon)), _winnerRate(winnerRate)
 	{
 	}
 	T _pokemon;

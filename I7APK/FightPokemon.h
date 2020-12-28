@@ -68,7 +68,6 @@ struct PokeBattleVisitor
 	template<typename P1, typename P2>
 	std::variant<WeakPokemon, StrongPokemon, NoPokemon> operator()(const P1& arg, const P2& challenger)
 	{
-		std::cout << "Pre battle step" << std::endl;
 		return FightWithConstexpr(challenger, arg);
 	}
 };
