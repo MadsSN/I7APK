@@ -2,7 +2,6 @@
 //
 
 #include <iostream>
-#include "boost/signals2.hpp"
 #include "Pokemon.h"
 #include "PokemonFightCalculator.h"
 #include "FightPokemon.h"
