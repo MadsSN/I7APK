@@ -3,7 +3,7 @@
 #include "PokemonVariant.h"
 #include <iostream>
 
-void asyncThreadBattle(std::mutex& m, std::condition_variable& c, PokemonVariant& p, int& lastAttack)
+void asyncThreadBattle(std::mutex& m, std::condition_variable& c, std::variant<WeakPokemon, StrongPokemon, NoPokemon>& p, int& lastAttack)
 {
 	Pokemon pb = std::visit(PokeGetBase(), p);
 	std::unique_lock<std::mutex> ul(m);

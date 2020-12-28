@@ -11,7 +11,7 @@ struct is_first_winner
 };
 
 template<typename P1, typename P2>
-PokemonVariant FightWithTags(P1& p1, P2& p2)
+std::variant<WeakPokemon, StrongPokemon, NoPokemon> FightWithTags(P1& p1, P2& p2)
 {
 	return FightWithTagsImpl(p1, p2,
 		typename IfThenElse<FirstWinTag, SecondWinTag, is_first_winner<P1, P2>::value>::Type());
@@ -49,7 +49,7 @@ void FightWithConstexpr(P1&& p1, P2&& p2) {
 };
 
 template<typename P1, typename P2>
-PokemonVariant FightWithConstexpr(P1& p1, P2& p2) {
+std::variant<WeakPokemon, StrongPokemon, NoPokemon> FightWithConstexpr(P1& p1, P2& p2) {
 	std::cout << "BATTLE MUSIC" << std::endl;
 	if constexpr (is_first_winner<P1, P2>::value) {
 		std::cout << p1._navn << " won!" << std::endl;
@@ -66,7 +66,7 @@ PokemonVariant FightWithConstexpr(P1& p1, P2& p2) {
 struct PokeBattleVisitor
 {
 	template<typename P1, typename P2>
-	PokemonVariant operator()(const P1& arg, const P2& challenger)
+	std::variant<WeakPokemon, StrongPokemon, NoPokemon> operator()(const P1& arg, const P2& challenger)
 	{
 		std::cout << "Pre battle step" << std::endl;
 		return FightWithConstexpr(challenger, arg);

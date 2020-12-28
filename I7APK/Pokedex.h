@@ -26,9 +26,9 @@ namespace pokepmr {
 	using list = std::list<T, std::pmr::polymorphic_allocator<T>>;
 }
 //By recursive
-void ComparePokemonToAllOthers(PokemonVariant& challenger, pokepmr::list<PokemonVariant>& pokemons)
+void ComparePokemonToAllOthers(std::variant<WeakPokemon, StrongPokemon, NoPokemon>& challenger, pokepmr::list<std::variant<WeakPokemon, StrongPokemon, NoPokemon>>& pokemons)
 {
-	for (pokepmr::list<PokemonVariant>::const_iterator pokeIter = pokemons.begin(); pokeIter != pokemons.end(); ++pokeIter)
+	for (pokepmr::list<std::variant<WeakPokemon, StrongPokemon, NoPokemon>>::const_iterator pokeIter = pokemons.begin(); pokeIter != pokemons.end(); ++pokeIter)
 	{
 		std::visit([](auto&& arg, auto&& arg2)
 			{
@@ -44,7 +44,7 @@ public:
 	
 
 	PokemonStatsResource _pokemonStatsResource{};
-	pokepmr::list<PokemonVariant> _pokemons{ &_pokemonStatsResource };
+	pokepmr::list<std::variant<WeakPokemon, StrongPokemon, NoPokemon>> _pokemons{ &_pokemonStatsResource };
 
 	Pokedex() 
 	{
@@ -68,7 +68,7 @@ public:
 	void createNewPokemon(Args&&... args)
 	{
 		T pokemon = T(std::forward<Args>(args)...);
-		for (std::list<PokemonVariant>::const_iterator pokeIter = _pokemons.begin(); pokeIter != _pokemons.end(); ++pokeIter)
+		for (std::list<std::variant<WeakPokemon, StrongPokemon, NoPokemon>>::const_iterator pokeIter = _pokemons.begin(); pokeIter != _pokemons.end(); ++pokeIter)
 		{
 			if(pokemon._pokeIndex == std::visit(PokeGetBase(), *pokeIter)._pokeIndex)
 			{
@@ -86,7 +86,7 @@ public:
 	}
 
 	void printAllIterator() {
-		for (std::list<PokemonVariant>::const_iterator pokeIter = _pokemons.begin(); pokeIter != _pokemons.end(); ++pokeIter)
+		for (std::list<std::variant<WeakPokemon, StrongPokemon, NoPokemon>>::const_iterator pokeIter = _pokemons.begin(); pokeIter != _pokemons.end(); ++pokeIter)
 		{
 			std::visit(PokeVisitor(), *pokeIter);
 		}
@@ -98,7 +98,7 @@ public:
 		std::transform(_pokemons.begin(),
 			_pokemons.end(),
 			std::back_inserter(nameOfPokemon),
-			[](const PokemonVariant& pokemon) {return std::visit(PokeGetBase(), pokemon)._navn; }
+			[](const std::variant<WeakPokemon, StrongPokemon, NoPokemon>& pokemon) {return std::visit(PokeGetBase(), pokemon)._navn; }
 		);
 		nameOfPokemon.sort();
 		std::for_each(nameOfPokemon.begin(), nameOfPokemon.end(), PrintPokemonNameFunctor());
@@ -118,7 +118,7 @@ public:
 	}
 
 	void comparePokemontypes() {
-		PokemonVariant challenger = StrongPokemon(149, "Dragonite");
+		std::variant<WeakPokemon, StrongPokemon, NoPokemon> challenger = StrongPokemon(149, "Dragonite");
 		ComparePokemonToAllOthers(challenger, _pokemons);
 	}
 

@@ -54,7 +54,7 @@ struct PercentageWin
 class PokemonFightCalculator
 {
 public:
-	typedef boost::signals2::signal<PokemonVariant(PokemonVariant&, PokemonVariant&), PercentageWin<PokemonVariant>> PokeSignal;
+	typedef boost::signals2::signal<std::variant<WeakPokemon, StrongPokemon, NoPokemon>(std::variant<WeakPokemon, StrongPokemon, NoPokemon>&, std::variant<WeakPokemon, StrongPokemon, NoPokemon>&), PercentageWin<std::variant<WeakPokemon, StrongPokemon, NoPokemon>>> PokeSignal;
 	PokeSignal sig;
 
 	void connect(const PokeSignal::slot_function_type& slot)
@@ -62,7 +62,7 @@ public:
 		sig.connect(slot);
 	}
 
-	void fight(PokemonVariant p1, PokemonVariant p2) const
+	void fight(std::variant<WeakPokemon, StrongPokemon, NoPokemon> p1, std::variant<WeakPokemon, StrongPokemon, NoPokemon> p2) const
 	{
 		PokeSignal::result_type pokemon = sig(p1, p2);
 		std::cout << "Winner between: " << std::visit(PokeGetBase(), p1)._navn << " and "

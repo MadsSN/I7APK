@@ -24,22 +24,22 @@ struct PokeGetBase
 		return arg;
 	}
 };
-using PokemonVariant = std::variant<WeakPokemon, StrongPokemon, NoPokemon>;
+//using std::variant<WeakPokemon, StrongPokemon, NoPokemon> = std::variant<WeakPokemon, StrongPokemon, NoPokemon>;
 /*
-struct PokemonVariant : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
+struct std::variant<WeakPokemon, StrongPokemon, NoPokemon> : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
 {
-	PokemonVariant() = default;
+	std::variant<WeakPokemon, StrongPokemon, NoPokemon>() = default;
 
 	//Purpose choose not to use template argument
-	PokemonVariant(const WeakPokemon& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
+	std::variant<WeakPokemon, StrongPokemon, NoPokemon>(const WeakPokemon& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
 	{
 	};
 
-	PokemonVariant(const StrongPokemon& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
+	std::variant<WeakPokemon, StrongPokemon, NoPokemon>(const StrongPokemon& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
 	{
 	};
 
-	PokemonVariant(const NoPokemon& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
+	std::variant<WeakPokemon, StrongPokemon, NoPokemon>(const NoPokemon& x) : std::variant<WeakPokemon, StrongPokemon, NoPokemon>(x)
 	{
 	};
 
@@ -73,7 +73,7 @@ struct PokemonVariant : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
 };
 */
 
-std::ostream& operator<<(std::ostream& out, const PokemonVariant& c)
+std::ostream& operator<<(std::ostream& out, const std::variant<WeakPokemon, StrongPokemon, NoPokemon>& c)
 {
 	std::visit(PokeVisitor(), c);
 	return out;

@@ -15,7 +15,7 @@ int main()
 	PokemonFightCalculator pokemonFightCalculator{};
 	
 	
-	//std::function<PokemonVariant (PokemonVariant, PokemonVariant)> fn = &Fight3;
+	//std::function<std::variant<WeakPokemon, StrongPokemon, NoPokemon> (std::variant<WeakPokemon, StrongPokemon, NoPokemon>, std::variant<WeakPokemon, StrongPokemon, NoPokemon>)> fn = &Fight3;
 	//Try to find a way to adopt pokemon fight calculator with fight 3 system..
 	//Requeries that the interface changes to something like TypePokemon<T1> from Pokemon
 	auto fn = [](auto&& arg1, auto&& arg2) { return std::visit(PokeBattleVisitor(), arg1, arg2);; };
