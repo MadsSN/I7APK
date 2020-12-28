@@ -5,7 +5,6 @@ Pokemon::Pokemon(size_t index, std::string navn, size_t hp, size_t attack) : _po
 	_navn(navn),
 	_hp(hp),
 	_attack(attack){
-	std::cout << "Ordinary ctor " << _navn << "\n";
 }
 
 bool Pokemon::operator==(const Pokemon poke)
@@ -15,7 +14,6 @@ bool Pokemon::operator==(const Pokemon poke)
 
 Pokemon::Pokemon(const Pokemon& poke) : Pokemon(poke._pokeIndex, poke._navn, poke._hp, poke._attack)
 {
-	std::cout << "Copy ctor " << _navn << "\n";
 }
 
 Pokemon::Pokemon(Pokemon&& poke) noexcept :
@@ -23,12 +21,10 @@ Pokemon::Pokemon(Pokemon&& poke) noexcept :
 	_attack(0)
 {
 	swap(*this, poke);
-	std::cout << "Move ctor " << _navn << "\n";
 }
 
 Pokemon& Pokemon::operator=(const Pokemon& poke)
 {
-	std::cout << "Assignment ctor " << _navn << "\n";
 	Pokemon copy(poke);
 	swap(*this, copy);
 	return *this;
@@ -40,7 +36,6 @@ Pokemon& Pokemon::operator=(Pokemon&& poke) noexcept
 	{
 		swap(*this, poke);
 	}
-	std::cout << "Move Assignment ctor " << _navn << "\n";
 	return *this;
 }
 

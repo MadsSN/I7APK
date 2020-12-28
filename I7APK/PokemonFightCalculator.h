@@ -9,7 +9,6 @@ class PercentageWinner
 public:
 	PercentageWinner(const T& pokemon, int winnerRate) : _pokemon(pokemon), _winnerRate(winnerRate)
 	{
-		std::cout << "Percentage winner ctor " << std::endl;
 	}
 	T _pokemon;
 	int _winnerRate;
@@ -24,19 +23,13 @@ struct PercentageWin
 	result_type operator()(InputIterator first,
 		InputIterator last) const
 	{
-		//if (first == last) return result_type();
-		std::cout << "Percentage step 1 " << std::endl;
 		T& p1 = *first++;
-		std::cout << "Percentage step 1.1 " << std::endl;
 		T& p2 = p1;
-		std::cout << "Percentage step 1.2 " << std::endl;
 		int results = 1;
 		int p1Win = 1;
 		for (; first != last; ++first) {
 			results++;
-			std::cout << "Percentage step 2 " << std::endl;
 			auto result = *first;
-			std::cout << "Percentage step 2 result" << std::endl;
 			if (p1.index() == result.index()) {
 				p1Win++;
 			}
@@ -44,18 +37,14 @@ struct PercentageWin
 			{
 				p2 = result;
 			}
-			std::cout << "Percentage step 3 " << std::endl;
 		}
 		int winProcent = (100 * p1Win) / results;
-		std::cout << "Percentage step 4 " << std::endl;
 		if (winProcent > 50)
 		{
-			std::cout << "Percentage step 5.1 " << std::endl;
 			return result_type(p1, winProcent);
 		}
 		else
 		{
-			std::cout << "Percentage step 5.2 " << std::endl;
 			return result_type(p2, 100 - winProcent);
 		}
 
