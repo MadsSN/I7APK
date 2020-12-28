@@ -64,12 +64,9 @@ public:
 
 	void fight(PokemonVariant p1, PokemonVariant p2) const
 	{
-		std::cout << "Pre signal step" << std::endl;
 		PokeSignal::result_type pokemon = sig(p1, p2);
-		std::cout << "Post signal step" << std::endl;
-		std::cout << "Winner between: " << p1.name() << " and "
-			<< p2.name() << " is: "
-			<< pokemon._pokemon.name() << " with ratio of " << pokemon._winnerRate << std::endl;
-		std::cout << "Post printout step" << std::endl;
+		std::cout << "Winner between: " << std::visit(PokeGetBase(), p1)._navn << " and "
+			<< std::visit(PokeGetBase(), p2)._navn << " is: "
+			<< std::visit(PokeGetBase(), pokemon._pokemon)._navn << " with ratio of " << pokemon._winnerRate << std::endl;
 	}
 };

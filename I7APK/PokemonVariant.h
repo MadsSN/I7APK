@@ -5,6 +5,8 @@
 #include <variant>
 
 
+
+
 struct PokeVisitor
 {
 	template<typename T>
@@ -17,12 +19,13 @@ struct PokeVisitor
 struct PokeGetBase
 {
 	template<typename T>
-	const Pokemon& operator()(const T& arg)
+	const Pokemon& operator()(const T& arg) const 
 	{
 		return arg;
 	}
 };
-
+using PokemonVariant = std::variant<WeakPokemon, StrongPokemon, NoPokemon>;
+/*
 struct PokemonVariant : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
 {
 	PokemonVariant() = default;
@@ -41,32 +44,34 @@ struct PokemonVariant : std::variant<WeakPokemon, StrongPokemon, NoPokemon>
 	};
 
 
-	std::string name() const {
+	std::string name() {
 		return get()._navn;
 	}
 
-	size_t hp() const {
+	size_t hp() {
 		return get()._hp;
 	}
 
-	size_t attack() const {
+	size_t attack() {
 		return get()._attack;
 	}
 
-	size_t pokeIndex() const {
+	size_t pokeIndex() {
 		return get()._pokeIndex;
 	}
 
-	const Pokemon& get() const
+	const Pokemon& get()
 	{
-		return std::visit(PokeGetBase(), *this);
+		auto p = std::visit(PokeGetBase(), *this);
+		return p;
 	}
 
-	void print() const
+	void print()
 	{
 		std::cout << get() << std::endl;
 	}
 };
+*/
 
 std::ostream& operator<<(std::ostream& out, const PokemonVariant& c)
 {

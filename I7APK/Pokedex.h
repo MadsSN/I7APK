@@ -70,9 +70,9 @@ public:
 		T pokemon = T(std::forward<Args>(args)...);
 		for (std::list<PokemonVariant>::const_iterator pokeIter = _pokemons.begin(); pokeIter != _pokemons.end(); ++pokeIter)
 		{
-			if(pokemon._pokeIndex == (*pokeIter).pokeIndex())
+			if(pokemon._pokeIndex == std::visit(PokeGetBase(), *pokeIter)._pokeIndex)
 			{
-				throw std::exception("Index already used");
+				throw std::exception();
 			};
 		}
 		_pokemons.emplace_back(pokemon);
@@ -81,7 +81,7 @@ public:
 
 	void printAllRangeBased() {
 		for (const auto& pokemon : _pokemons) {
-			pokemon.print();
+			std::visit(PokeVisitor(), pokemon);
 		}
 	}
 
@@ -98,7 +98,7 @@ public:
 		std::transform(_pokemons.begin(),
 			_pokemons.end(),
 			std::back_inserter(nameOfPokemon),
-			[](const PokemonVariant& pokemon) {return pokemon.name(); }
+			[](const PokemonVariant& pokemon) {return std::visit(PokeGetBase(), pokemon)._navn; }
 		);
 		nameOfPokemon.sort();
 		std::for_each(nameOfPokemon.begin(), nameOfPokemon.end(), PrintPokemonNameFunctor());
@@ -107,9 +107,7 @@ public:
 
 	void randomPokemonFights(PokemonFightCalculator& pokemonFightCalculator)
 	{
-		std::cout << "First step" << std::endl;
 		pokemonFightCalculator.fight(_pokemons.front(), _pokemons.back());
-		std::cout << "Last  step" << std::endl;
 	}
 
 	void predestinedBattle() {
@@ -121,7 +119,7 @@ public:
 
 	void comparePokemontypes() {
 		PokemonVariant challenger = StrongPokemon(149, "Dragonite");
-//		ComparePokemonToAllOthers(challenger, _pokemons);
+		ComparePokemonToAllOthers(challenger, _pokemons);
 	}
 
 	void startPokemonTypeTutorial() {
