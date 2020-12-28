@@ -21,11 +21,14 @@ public:
 		std::cout << name << std::endl;
 	}
 };
-
+namespace pokepmr {
+	template<typename T>
+	using list = std::list<T, std::pmr::polymorphic_allocator<T>>;
+}
 //By recursive
-void ComparePokemonToAllOthers(PokemonVariant& challenger, std::list<PokemonVariant>& pokemons)
+void ComparePokemonToAllOthers(PokemonVariant& challenger, pokepmr::list<PokemonVariant>& pokemons)
 {
-	for (std::list<PokemonVariant>::const_iterator pokeIter = pokemons.begin(); pokeIter != pokemons.end(); ++pokeIter)
+	for (pokepmr::list<PokemonVariant>::const_iterator pokeIter = pokemons.begin(); pokeIter != pokemons.end(); ++pokeIter)
 	{
 		std::visit([](auto&& arg, auto&& arg2)
 			{
@@ -34,10 +37,7 @@ void ComparePokemonToAllOthers(PokemonVariant& challenger, std::list<PokemonVari
 	}
 }
 
-namespace pokepmr {
-	template<typename T>
-	using list = std::list<T, std::pmr::polymorphic_allocator<T>>;
-}
+
 
 class Pokedex {
 public:
