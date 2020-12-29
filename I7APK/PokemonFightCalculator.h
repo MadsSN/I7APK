@@ -10,8 +10,9 @@ template<typename T>
 class PercentageWinner
 {
 public:
-	PercentageWinner(T pokemon, int winnerRate) : _pokemon(std::move(pokemon)), _winnerRate(winnerRate)
+	PercentageWinner(const T& pokemon, int winnerRate) : _pokemon(pokemon), _winnerRate(winnerRate)
 	{
+		std::cout << std::visit(PokeGetBase(), pokemon)._navn << std::endl;
 	}
 	T _pokemon;
 	int _winnerRate;
@@ -26,8 +27,8 @@ struct PercentageWin
 	result_type operator()(InputIterator first,
 		InputIterator last) const
 	{
-		T& p1 = *first++;
-		T& p2 = p1;
+		T p1 = *first++;
+		T p2 = p1;
 		int results = 1;
 		int p1Win = 1;
 		for (; first != last; ++first) {
@@ -44,7 +45,8 @@ struct PercentageWin
 		int winProcent = (100 * p1Win) / results;
 		if (winProcent > 50)
 		{
-			return result_type(p1, winProcent);
+			std::cout << std::visit(PokeGetBase(), p1)._navn << std::endl;
+			return result_type(p1,winProcent);
 		}
 		else
 		{
