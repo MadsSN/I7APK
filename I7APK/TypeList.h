@@ -21,7 +21,12 @@ struct AtIndex<TypeList, 0> {
 };
 
 std::string removeStructFromTypeName(std::string fullTypeName) {
-	return fullTypeName.substr(7, fullTypeName.length() - 1);
+	//return fullTypeName.substr(7, fullTypeName.length() - 1);
+	if (fullTypeName == "10StrongType") {
+		return fullTypeName.substr(2, fullTypeName.length());
+	} else {
+		return fullTypeName.substr(1, fullTypeName.length());
+	}
 }
 
 void printIndexAndName(size_t index, std::string name) {
@@ -30,7 +35,7 @@ void printIndexAndName(size_t index, std::string name) {
 
 template<typename TypeList>
 struct printImpl {
-	inline static const std::string Print = printImpl<typename TypeList::Rest>::Print 
+	inline static const std::string Print = printImpl<typename TypeList::Rest>::Print
 		+ removeStructFromTypeName(typeid(typename TypeList::First).name())
 		+ std::string(", ");
 };
